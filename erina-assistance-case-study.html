@@ -1,0 +1,2020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Erina Assistance — Case Study | Senior MERN Engineer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Barlow:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ================================================
+   DESIGN TOKENS — INDUSTRIAL CHARCOAL + ORANGE
+   ================================================ */
+:root {
+  --void:     #0a0b0f;
+  --deep:     #0e0f14;
+  --surface:  #13151c;
+  --surface2: #181b23;
+  --panel:    #1e2029;
+  --card:     rgba(255,255,255,0.032);
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.12);
+
+  --orange:       #f97316;
+  --orange-dim:   rgba(249,115,22,0.12);
+  --orange-glow:  rgba(249,115,22,0.3);
+  --amber:        #f59e0b;
+  --amber-dim:    rgba(245,158,11,0.1);
+  --red:          #ef4444;
+  --red-dim:      rgba(239,68,68,0.1);
+  --green:        #22c55e;
+  --green-dim:    rgba(34,197,94,0.1);
+  --blue:         #3b82f6;
+  --blue-dim:     rgba(59,130,246,0.1);
+  --slate:        #64748b;
+
+  --grad-fire:    linear-gradient(135deg, #f97316, #f59e0b);
+  --grad-dark:    linear-gradient(135deg, #13151c, #1e2029);
+  --grad-text:    linear-gradient(135deg, #fb923c 0%, #fbbf24 100%);
+
+  --txt-100:  #f1f2f5;
+  --txt-300:  #8a8f9e;
+  --txt-500:  #404454;
+  --txt-700:  #252830;
+
+  --f-display: 'Barlow Condensed', sans-serif;
+  --f-body:    'Barlow', sans-serif;
+  --f-mono:    'JetBrains Mono', monospace;
+
+  --r-sm:  8px;
+  --r-md:  14px;
+  --r-lg:  20px;
+  --r-xl:  28px;
+
+  --sh-card:  0 4px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+  --sh-fire:  0 0 40px rgba(249,115,22,0.2);
+  --sh-lift:  0 16px 60px rgba(0,0,0,0.5);
+}
+
+/* ================================================
+   RESET & BASE
+   ================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--void);
+  color:var(--txt-100);
+  font-family:var(--f-body);
+  font-weight:400;
+  line-height:1.6;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+/* Diagonal stripe texture */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background-image:repeating-linear-gradient(
+    -45deg,
+    transparent,transparent 4px,
+    rgba(255,255,255,0.008) 4px,rgba(255,255,255,0.008) 5px
+  );
+}
+a{text-decoration:none;color:inherit;}
+ul{list-style:none;}
+h1,h2,h3,h4{font-family:var(--f-display);line-height:1.05;letter-spacing:-0.01em;}
+
+.container{max-width:1180px;margin:0 auto;padding:0 28px;}
+section{padding:100px 0;position:relative;}
+.sec-rule{width:100%;height:1px;background:var(--border);}
+
+/* ================================================
+   UTILITIES
+   ================================================ */
+.grad-text{
+  background:var(--grad-text);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.section-tag{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--f-mono);font-size:0.65rem;font-weight:500;
+  letter-spacing:0.16em;text-transform:uppercase;color:var(--orange);
+  margin-bottom:18px;
+}
+.section-tag::before{content:'';width:20px;height:1px;background:var(--orange);opacity:0.6;}
+.glass{
+  background:var(--card);backdrop-filter:blur(16px);
+  border:1px solid var(--border);border-radius:var(--r-lg);
+  box-shadow:var(--sh-card);
+  transition:transform 0.3s,border-color 0.3s,box-shadow 0.3s;
+}
+.glass:hover{transform:translateY(-4px);border-color:rgba(249,115,22,0.2);box-shadow:var(--sh-card),var(--sh-fire);}
+.orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(100px);opacity:0.15;}
+
+/* ================================================
+   NAV
+   ================================================ */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  background:rgba(10,11,15,0.8);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);transition:border-color 0.3s;
+}
+nav.scrolled{border-bottom-color:rgba(249,115,22,0.15);}
+.nav-inner{
+  max-width:1180px;margin:0 auto;padding:0 28px;
+  height:62px;display:flex;align-items:center;justify-content:space-between;gap:20px;
+}
+.nav-logo{display:flex;align-items:center;gap:10px;}
+.nav-logo-icon{
+  width:34px;height:34px;background:var(--orange);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:1.1rem;
+  box-shadow:0 0 16px rgba(249,115,22,0.4);
+}
+.nav-logo-text{
+  font-family:var(--f-display);font-size:1.1rem;font-weight:800;
+  letter-spacing:0.04em;text-transform:uppercase;color:var(--txt-100);
+}
+.nav-chip{
+  font-family:var(--f-mono);font-size:0.6rem;letter-spacing:0.1em;
+  padding:4px 12px;border-radius:100px;
+  border:1px solid rgba(249,115,22,0.2);color:var(--orange);
+  background:var(--orange-dim);
+}
+.nav-cta{
+  background:var(--orange);color:#fff;
+  font-family:var(--f-display);font-weight:700;font-size:0.9rem;
+  padding:9px 22px;border-radius:100px;letter-spacing:0.06em;text-transform:uppercase;
+  transition:opacity 0.2s,transform 0.15s;
+}
+.nav-cta:hover{opacity:0.85;transform:translateY(-1px);}
+
+/* ================================================
+   HERO
+   ================================================ */
+#hero{
+  min-height:100vh;display:flex;align-items:center;
+  padding:120px 0 80px;overflow:hidden;
+  background:var(--deep);
+}
+.hero-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 50%,rgba(249,115,22,0.08) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 20%,rgba(245,158,11,0.06) 0%,transparent 55%),
+    radial-gradient(ellipse 40% 60% at 50% 100%,rgba(249,115,22,0.04) 0%,transparent 50%);
+}
+/* Road lane lines */
+.hero-road{
+  position:absolute;bottom:0;left:0;right:0;height:180px;
+  background:linear-gradient(0deg,rgba(249,115,22,0.04) 0%,transparent 100%);
+  overflow:hidden;
+}
+.hero-road::before{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent,var(--orange),transparent);
+  opacity:0.3;
+}
+.lane-marks{
+  position:absolute;bottom:30px;left:0;right:0;
+  display:flex;gap:40px;padding:0 40px;
+}
+.lane-mark{width:60px;height:4px;background:rgba(249,115,22,0.15);border-radius:2px;}
+
+.hero-layout{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:60px;align-items:center;position:relative;z-index:2;
+}
+
+/* Alert kicker */
+.hero-alert{
+  display:inline-flex;align-items:center;gap:10px;
+  background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);
+  border-radius:var(--r-sm);padding:8px 16px;margin-bottom:28px;
+}
+.alert-pip{
+  width:8px;height:8px;background:var(--orange);border-radius:50%;
+  box-shadow:0 0 10px var(--orange);
+  animation:pip 2s ease-in-out infinite;
+}
+@keyframes pip{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.3;transform:scale(0.7);}}
+.hero-alert span{font-family:var(--f-mono);font-size:0.65rem;color:var(--orange);letter-spacing:0.1em;text-transform:uppercase;}
+
+.hero-h1{
+  font-size:clamp(3rem,7vw,6rem);font-weight:900;
+  line-height:0.95;letter-spacing:0.02em;text-transform:uppercase;
+  margin-bottom:12px;color:var(--txt-100);
+}
+.hero-h1 .h1-accent{color:var(--orange);}
+.hero-h1-sub{
+  font-family:var(--f-display);font-size:clamp(1rem,2vw,1.4rem);
+  font-weight:400;color:var(--txt-300);letter-spacing:0.04em;
+  text-transform:uppercase;margin-bottom:28px;
+}
+.hero-rule{
+  width:60px;height:3px;background:var(--grad-fire);
+  border-radius:2px;margin-bottom:28px;
+}
+.hero-desc{
+  font-size:1.0rem;color:var(--txt-300);line-height:1.8;
+  font-weight:300;max-width:500px;margin-bottom:40px;
+}
+.hero-desc strong{color:var(--txt-100);font-weight:500;}
+
+/* Badge row */
+.badge-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:44px;}
+.bdg{
+  font-family:var(--f-mono);font-size:0.6rem;padding:5px 11px;
+  border-radius:5px;border:1px solid;letter-spacing:0.05em;transition:transform 0.2s;cursor:default;
+}
+.bdg:hover{transform:translateY(-2px);}
+.bo{background:var(--orange-dim);border-color:rgba(249,115,22,0.25);color:var(--orange);}
+.ba{background:var(--amber-dim);border-color:rgba(245,158,11,0.25);color:var(--amber);}
+.bg{background:var(--green-dim);border-color:rgba(34,197,94,0.25);color:var(--green);}
+.bb{background:var(--blue-dim);border-color:rgba(59,130,246,0.25);color:var(--blue);}
+.bs{background:rgba(100,116,139,0.1);border-color:rgba(100,116,139,0.2);color:var(--slate);}
+
+/* Hero stats */
+.hero-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  background:var(--border);gap:1px;
+  border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;
+}
+.hst{
+  background:var(--surface);padding:20px 16px;
+  transition:background 0.25s;cursor:default;
+}
+.hst:hover{background:rgba(249,115,22,0.05);}
+.hst-n{font-family:var(--f-display);font-size:1.7rem;font-weight:900;line-height:1;margin-bottom:4px;letter-spacing:0.02em;}
+.hst-l{font-size:0.62rem;color:var(--txt-500);font-weight:400;letter-spacing:0.04em;text-transform:uppercase;}
+
+/* Hero right — 3-panel visual */
+.hero-panels{position:relative;z-index:2;}
+.hp-main{
+  background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--r-xl);
+  overflow:hidden;box-shadow:var(--sh-lift);
+}
+/* Map mockup */
+.hp-map{
+  height:200px;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#0d1117 0%,#111827 100%);
+}
+.hp-map-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(249,115,22,0.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(249,115,22,0.06) 1px,transparent 1px);
+  background-size:32px 32px;
+}
+.hp-road-h{position:absolute;top:50%;left:0;right:0;height:8px;background:rgba(249,115,22,0.12);transform:translateY(-50%);}
+.hp-road-v{position:absolute;left:40%;top:0;bottom:0;width:8px;background:rgba(249,115,22,0.08);}
+.hp-pin{
+  position:absolute;top:40%;left:38%;
+  width:28px;height:28px;background:var(--orange);border-radius:50% 50% 50% 0;
+  transform:rotate(-45deg);box-shadow:0 0 20px rgba(249,115,22,0.6);
+  animation:pin-pulse 2s ease-in-out infinite;
+}
+@keyframes pin-pulse{0%,100%{box-shadow:0 0 20px rgba(249,115,22,0.6);}50%{box-shadow:0 0 40px rgba(249,115,22,0.9);}}
+.hp-pin::after{
+  content:'🔧';position:absolute;top:50%;left:50%;
+  transform:rotate(45deg) translate(-50%,-50%);font-size:0.7rem;line-height:1;
+}
+.hp-truck{
+  position:absolute;top:45%;left:60%;font-size:1.4rem;
+  animation:truck-move 8s linear infinite;
+}
+@keyframes truck-move{0%{left:80%;}100%{left:20%;}}
+/* Status bar below map */
+.hp-status-bar{
+  padding:12px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);background:var(--surface2);
+}
+.hp-sb-left{display:flex;align-items:center;gap:8px;}
+.hp-sb-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green);}
+.hp-sb-text{font-size:0.72rem;font-weight:600;color:var(--txt-100);}
+.hp-sb-sub{font-size:0.62rem;color:var(--txt-300);}
+.hp-eta{
+  font-family:var(--f-display);font-size:1.0rem;font-weight:800;color:var(--orange);letter-spacing:0.04em;
+}
+/* Service steps */
+.hp-steps{padding:14px 16px;display:flex;flex-direction:column;gap:8px;}
+.hp-step{
+  display:flex;align-items:center;gap:10px;padding:8px 10px;
+  border-radius:var(--r-sm);background:rgba(255,255,255,0.02);
+  border:1px solid var(--border);transition:border-color 0.2s;
+}
+.hp-step.active{border-color:rgba(249,115,22,0.3);background:rgba(249,115,22,0.04);}
+.hp-step-ico{
+  width:28px;height:28px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;
+}
+.ico-done{background:var(--green-dim);border:1px solid rgba(34,197,94,0.2);}
+.ico-active{background:var(--orange-dim);border:1px solid rgba(249,115,22,0.2);}
+.ico-wait{background:rgba(255,255,255,0.04);border:1px solid var(--border);}
+.hp-step-label{font-size:0.72rem;font-weight:600;}
+.hp-step.active .hp-step-label{color:var(--orange);}
+.hp-step-sub{font-size:0.6rem;color:var(--txt-300);margin-left:auto;}
+.hp-step-check{color:var(--green);font-size:0.7rem;margin-left:auto;}
+
+/* Floating cards */
+.hfc{
+  position:absolute;z-index:4;
+  background:var(--surface2);
+  border:1px solid var(--border);border-radius:var(--r-md);
+  box-shadow:var(--sh-lift),0 0 0 1px rgba(249,115,22,0.06);
+  padding:14px 16px;cursor:default;transition:transform 0.25s;
+}
+.hfc:hover{transform:scale(1.03);}
+.hfc-tech{right:-70px;top:40px;width:190px;animation:hfcr 7s ease-in-out infinite;}
+@keyframes hfcr{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
+.hfc-tech:hover{transform:scale(1.03) translateY(-2px);}
+.hfc-sub{left:-80px;bottom:80px;width:185px;animation:hfcl 8.5s ease-in-out 1s infinite;}
+@keyframes hfcl{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.hfc-sub:hover{transform:scale(1.03) translateY(-2px);}
+.hfc-batt{left:-60px;top:50px;width:170px;animation:hfcl2 9s ease-in-out 0.5s infinite;}
+@keyframes hfcl2{0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);}}
+
+.hfc-label{font-family:var(--f-mono);font-size:0.55rem;color:var(--txt-500);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;}
+.hfc-title{font-family:var(--f-display);font-size:0.9rem;font-weight:700;margin-bottom:3px;}
+.hfc-sub-text{font-size:0.68rem;color:var(--txt-300);}
+.hfc-val{font-family:var(--f-display);font-size:1.8rem;font-weight:900;color:var(--orange);letter-spacing:0.02em;line-height:1;}
+.hfc-divider{height:1px;background:var(--border);margin:8px 0;}
+.hfc-pill{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:0.62rem;font-weight:600;padding:3px 9px;border-radius:5px;
+}
+.fp-green{background:var(--green-dim);color:var(--green);}
+.fp-orange{background:var(--orange-dim);color:var(--orange);}
+.hfc-row{display:flex;align-items:center;justify-content:space-between;margin-top:4px;}
+.hfc-sub-stat{font-size:0.72rem;color:var(--txt-300);}
+.hfc-sub-stat strong{color:var(--txt-100);font-weight:600;}
+
+/* ================================================
+   OVERVIEW
+   ================================================ */
+#overview{background:var(--surface);}
+.ov-layout{display:grid;grid-template-columns:1fr 1fr;gap:68px;align-items:start;}
+.ov-left h2{font-size:clamp(1.9rem,3.5vw,2.9rem);margin-bottom:20px;text-transform:uppercase;}
+.ov-left p{color:var(--txt-300);font-weight:300;line-height:1.8;margin-bottom:16px;font-size:0.97rem;}
+/* Platform panels */
+.ov-panels{display:flex;flex-direction:column;gap:12px;}
+.ov-panel{
+  padding:18px 20px;
+  background:var(--deep);border:1px solid var(--border);border-radius:var(--r-md);
+  display:flex;align-items:flex-start;gap:14px;
+  transition:border-color 0.2s;cursor:default;
+}
+.ov-panel:hover{border-color:rgba(249,115,22,0.2);}
+.ov-panel-icon{
+  width:40px;height:40px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;
+  border:1px solid var(--border);
+}
+.ov-panel h4{font-family:var(--f-display);font-size:0.95rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;}
+.ov-panel p{font-size:0.76rem;color:var(--txt-300);font-weight:300;}
+.ov-panel-tag{font-family:var(--f-mono);font-size:0.55rem;padding:2px 8px;border-radius:4px;border:1px solid;letter-spacing:0.06em;margin-left:auto;flex-shrink:0;align-self:flex-start;margin-top:2px;}
+
+/* Scale strip */
+.scale-strip{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:var(--border);
+  border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;
+  margin-top:28px;
+}
+.ss-item{
+  background:var(--deep);padding:20px 16px;text-align:center;cursor:default;transition:background 0.2s;
+}
+.ss-item:hover{background:rgba(249,115,22,0.04);}
+.ss-n{font-family:var(--f-display);font-size:1.6rem;font-weight:900;color:var(--orange);letter-spacing:0.02em;line-height:1;margin-bottom:4px;}
+.ss-l{font-size:0.62rem;color:var(--txt-500);text-transform:uppercase;letter-spacing:0.06em;}
+
+/* ================================================
+   MODULES SECTION
+   ================================================ */
+#modules{background:var(--deep);overflow:hidden;}
+.mod-header{text-align:center;margin-bottom:64px;}
+.mod-header h2{font-size:clamp(1.9rem,3.5vw,2.9rem);margin-bottom:14px;text-transform:uppercase;}
+.mod-header p{color:var(--txt-300);max-width:520px;margin:0 auto;font-weight:300;}
+
+/* Three-panel: Website / Admin / Hub */
+.panel-tabs{display:flex;gap:6px;justify-content:center;margin-bottom:40px;}
+.ptab{
+  font-family:var(--f-display);font-size:0.82rem;font-weight:700;
+  padding:9px 24px;border-radius:100px;text-transform:uppercase;letter-spacing:0.08em;
+  cursor:pointer;border:1px solid var(--border);color:var(--txt-300);background:transparent;
+  transition:all 0.2s;
+}
+.ptab.active{background:var(--orange);color:#fff;border-color:var(--orange);box-shadow:0 0 20px rgba(249,115,22,0.3);}
+.ptab:hover:not(.active){border-color:rgba(249,115,22,0.3);color:var(--orange);}
+
+.mod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.mod-card{
+  padding:24px 20px;cursor:default;
+  position:relative;overflow:hidden;
+}
+.mod-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad-fire);opacity:0;transition:opacity 0.3s;}
+.mod-card:hover::before{opacity:1;}
+.mod-card-icon{
+  width:44px;height:44px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;font-size:1.25rem;margin-bottom:14px;
+}
+.mod-card h4{font-family:var(--f-display);font-size:0.92rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;}
+.mod-card p{font-size:0.74rem;color:var(--txt-300);font-weight:300;line-height:1.65;}
+.mod-card-num{position:absolute;top:14px;right:16px;font-family:var(--f-mono);font-size:0.55rem;color:var(--txt-500);letter-spacing:0.1em;}
+.mod-sub-items{margin-top:10px;display:flex;flex-direction:column;gap:4px;}
+.mod-sub-item{font-size:0.68rem;color:var(--txt-500);display:flex;gap:6px;align-items:flex-start;}
+.mod-sub-item::before{content:'·';color:var(--orange);flex-shrink:0;}
+
+/* ================================================
+   SERVICE BOOKING FLOW
+   ================================================ */
+#booking{background:var(--surface);}
+.book-header{text-align:center;margin-bottom:64px;}
+.book-header h2{font-size:clamp(1.9rem,3.5vw,2.9rem);margin-bottom:14px;text-transform:uppercase;}
+.book-header p{color:var(--txt-300);max-width:520px;margin:0 auto;font-weight:300;}
+
+.flow-steps{
+  display:flex;align-items:flex-start;justify-content:center;
+  gap:0;margin-bottom:60px;flex-wrap:wrap;row-gap:20px;
+}
+.flow-step{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:110px;}
+.flow-step-circle{
+  width:56px;height:56px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:1.3rem;
+  border:2px solid;transition:transform 0.25s;cursor:default;
+}
+.flow-step-circle:hover{transform:scale(1.1);}
+.fsc-1{background:var(--orange-dim);border-color:rgba(249,115,22,0.4);}
+.fsc-2{background:rgba(59,130,246,0.08);border-color:rgba(59,130,246,0.3);}
+.fsc-3{background:var(--amber-dim);border-color:rgba(245,158,11,0.3);}
+.fsc-4{background:var(--green-dim);border-color:rgba(34,197,94,0.3);}
+.fsc-5{background:rgba(168,85,247,0.08);border-color:rgba(168,85,247,0.3);}
+.fsc-6{background:var(--orange-dim);border-color:rgba(249,115,22,0.3);}
+.flow-step-label{font-family:var(--f-display);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;text-align:center;color:var(--txt-300);}
+.flow-arr{
+  display:flex;align-items:center;padding-top:22px;flex-shrink:0;width:30px;
+}
+.flow-arr svg{width:100%;height:12px;}
+
+/* Booking detail cards */
+.booking-detail-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;}
+.bk-card{padding:28px 24px;}
+.bk-card h4{font-family:var(--f-display);font-size:1.0rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:14px;color:var(--orange);}
+.bk-items{display:flex;flex-direction:column;gap:8px;}
+.bk-item{
+  display:flex;align-items:flex-start;gap:9px;
+  font-size:0.77rem;color:var(--txt-300);font-weight:300;line-height:1.5;
+}
+.bk-item::before{content:'→';font-family:var(--f-mono);font-size:0.6rem;color:var(--orange);flex-shrink:0;margin-top:2px;opacity:0.6;}
+
+/* Service types */
+.svc-types{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:40px;}
+.svc-type{
+  padding:28px 24px;
+  border:2px solid var(--border);border-radius:var(--r-lg);
+  text-align:center;cursor:default;transition:all 0.25s;
+}
+.svc-type:hover{border-color:rgba(249,115,22,0.3);background:rgba(249,115,22,0.03);}
+.svc-type-icon{font-size:2.5rem;margin-bottom:12px;}
+.svc-type h4{font-family:var(--f-display);font-size:1.1rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;}
+.svc-type p{font-size:0.76rem;color:var(--txt-300);font-weight:300;line-height:1.6;margin-bottom:14px;}
+.svc-type-services{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;}
+.svc-tag{
+  font-family:var(--f-mono);font-size:0.58rem;padding:3px 9px;border-radius:4px;
+  background:rgba(249,115,22,0.07);border:1px solid rgba(249,115,22,0.15);color:var(--orange);
+  letter-spacing:0.04em;
+}
+
+/* ================================================
+   UI SHOWCASE
+   ================================================ */
+#showcase{background:var(--deep);overflow:hidden;}
+.show-header{text-align:center;margin-bottom:64px;}
+.show-header h2{font-size:clamp(1.9rem,3.5vw,2.9rem);margin-bottom:14px;text-transform:uppercase;}
+.showcase-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;}
+.sc{
+  border-radius:var(--r-lg);overflow:hidden;position:relative;
+  min-height:220px;border:1px solid var(--border);
+  transition:transform 0.3s,box-shadow 0.3s;cursor:default;
+}
+.sc:hover{transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+.sc-wide{grid-column:span 2;min-height:260px;}
+.sc-lbl{
+  position:absolute;bottom:0;left:0;right:0;z-index:3;padding:16px 20px;
+  background:linear-gradient(0deg,rgba(10,11,15,0.94),transparent);
+}
+.sc-lbl h4{font-family:var(--f-display);font-size:0.88rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px;}
+.sc-lbl p{font-size:0.68rem;color:var(--txt-300);}
+
+/* Admin panel mockup */
+.mock-admin{
+  position:absolute;inset:0;display:flex;
+  background:#0a0b10;
+}
+.mock-admin-sidebar{
+  width:52px;background:#080910;border-right:1px solid rgba(255,255,255,0.05);
+  padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:5px;
+}
+.mad-logo{
+  width:32px;height:32px;background:var(--orange);border-radius:7px;
+  display:flex;align-items:center;justify-content:center;font-size:0.75rem;
+  margin-bottom:8px;font-weight:800;color:#fff;font-family:var(--f-display);
+}
+.mad-icon{
+  width:30px;height:30px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;font-size:0.75rem;
+  cursor:pointer;transition:background 0.15s;
+}
+.mad-icon:hover,.mad-icon.active{background:rgba(249,115,22,0.15);}
+.mock-admin-main{flex:1;display:flex;flex-direction:column;padding:10px;}
+.mad-header{
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.05);
+}
+.mad-title{font-family:var(--f-display);font-size:0.8rem;font-weight:700;color:var(--txt-100);text-transform:uppercase;letter-spacing:0.06em;}
+.mad-badge{font-family:var(--f-mono);font-size:0.5rem;padding:2px 8px;border-radius:4px;background:var(--orange-dim);border:1px solid rgba(249,115,22,0.2);color:var(--orange);}
+.mad-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;}
+.mad-stat{
+  padding:8px 10px;border-radius:7px;
+  background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);
+}
+.mad-stat-n{font-family:var(--f-display);font-size:1.0rem;font-weight:800;line-height:1;}
+.mad-stat-l{font-size:0.5rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.05em;}
+.mad-table{background:rgba(255,255,255,0.02);border-radius:7px;overflow:hidden;}
+.mad-table-head{display:flex;gap:6px;padding:5px 8px;border-bottom:1px solid rgba(255,255,255,0.04);}
+.mad-th{font-size:0.5rem;color:rgba(255,255,255,0.25);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;flex:1;}
+.mad-row{display:flex;gap:6px;padding:5px 8px;border-bottom:1px solid rgba(255,255,255,0.03);align-items:center;}
+.mad-row:last-child{border-bottom:none;}
+.mad-cell{font-size:0.55rem;color:rgba(255,255,255,0.5);flex:1;}
+.mad-status{
+  font-size:0.48rem;font-weight:700;padding:2px 6px;border-radius:3px;letter-spacing:0.04em;
+}
+.ms-active{background:rgba(34,197,94,0.1);color:#4ade80;}
+.ms-pending{background:rgba(249,115,22,0.1);color:var(--orange);}
+.ms-done{background:rgba(59,130,246,0.1);color:#60a5fa;}
+
+/* Product category mockup */
+.mock-products{
+  position:absolute;inset:0;
+  background:linear-gradient(160deg,#0e0f14 0%,#141520 100%);
+  padding:14px;display:flex;flex-direction:column;gap:10px;
+}
+.mock-cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.mock-cat{
+  border-radius:8px;border:1px solid rgba(255,255,255,0.06);
+  background:rgba(255,255,255,0.03);padding:10px 8px;text-align:center;cursor:pointer;
+  transition:border-color 0.2s;
+}
+.mock-cat:hover{border-color:rgba(249,115,22,0.2);}
+.mock-cat-icon{font-size:1.2rem;margin-bottom:5px;}
+.mock-cat-label{font-size:0.55rem;color:rgba(255,255,255,0.5);font-weight:500;text-transform:uppercase;letter-spacing:0.06em;}
+.mock-products-title{font-family:var(--f-display);font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.08em;}
+.mock-prod-list{display:flex;flex-direction:column;gap:6px;}
+.mock-prod-item{
+  display:flex;align-items:center;gap:8px;padding:7px 9px;
+  background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:7px;
+}
+.mock-prod-img{width:28px;height:28px;border-radius:6px;background:rgba(249,115,22,0.1);display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;}
+.mock-prod-name{font-size:0.6rem;color:rgba(255,255,255,0.7);font-weight:500;}
+.mock-prod-price{font-family:var(--f-display);font-size:0.75rem;font-weight:700;color:var(--orange);margin-left:auto;}
+.mock-prod-rating{font-size:0.5rem;color:rgba(255,255,255,0.3);}
+
+/* Subscription mockup */
+.mock-subs{
+  position:absolute;inset:0;
+  background:#0a0b10;padding:14px;
+}
+.mock-sub-cards{display:flex;flex-direction:column;gap:7px;}
+.mock-sub-card{
+  padding:10px 12px;border-radius:9px;border:1px solid rgba(255,255,255,0.07);
+  background:rgba(255,255,255,0.03);
+}
+.mock-sub-card.featured{border-color:rgba(249,115,22,0.3);background:rgba(249,115,22,0.04);}
+.msc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+.msc-name{font-family:var(--f-display);font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.04em;}
+.msc-price{font-family:var(--f-display);font-size:1.0rem;font-weight:800;color:var(--orange);}
+.msc-benefits{display:flex;flex-wrap:wrap;gap:3px;}
+.msc-benefit{font-size:0.5rem;padding:2px 6px;border-radius:3px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.4);}
+.msc-benefit.active{background:rgba(34,197,94,0.1);color:#4ade80;}
+
+/* Hub panel mockup */
+.mock-hub{
+  position:absolute;inset:0;
+  background:#0b0c12;padding:14px;display:flex;flex-direction:column;gap:8px;
+}
+.mock-hub-header{
+  display:flex;align-items:center;gap:8px;
+  padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.05);
+}
+.mhh-logo{
+  width:26px;height:26px;background:var(--amber);border-radius:6px;
+  display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:800;color:#000;
+}
+.mhh-title{font-family:var(--f-display);font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.06em;}
+.mhh-status{display:flex;align-items:center;gap:4px;font-size:0.55rem;color:var(--green);margin-left:auto;}
+.mock-svc-rows{display:flex;flex-direction:column;gap:5px;}
+.mock-svc-row{
+  display:flex;align-items:center;gap:8px;padding:8px 9px;
+  background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);border-radius:8px;
+}
+.msvc-icon{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;flex-shrink:0;}
+.msvc-name{font-size:0.62rem;color:rgba(255,255,255,0.6);font-weight:500;}
+.msvc-vehicle{font-size:0.52rem;color:rgba(255,255,255,0.3);}
+.msvc-status{margin-left:auto;font-size:0.5rem;padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:0.04em;}
+
+/* ================================================
+   TECH HIGHLIGHTS
+   ================================================ */
+#tech{background:var(--surface);}
+.tech-header{text-align:center;margin-bottom:64px;}
+.tech-header h2{font-size:clamp(1.9rem,3.5vw,2.9rem);margin-bottom:14px;text-transform:uppercase;}
+.tech-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.tech-card{padding:26px 22px;position:relative;overflow:hidden;}
+.tech-card::before{content:attr(data-n);position:absolute;top:14px;right:16px;font-family:var(--f-mono);font-size:0.55rem;color:var(--txt-500);letter-spacing:0.1em;}
+.tech-icon{
+  width:46px;height:46px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:14px;
+}
+.tech-card h4{font-family:var(--f-display);font-size:0.9rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;}
+.tech-card p{font-size:0.76rem;color:var(--txt-300);font-weight:300;line-height:1.7;}
+.tech-tag{display:inline-flex;margin-top:12px;font-family:var(--f-mono);font-size:0.57rem;padding:3px 9px;border-radius:4px;letter-spacing:0.05em;}
+
+/* ================================================
+   ARCHITECTURE
+   ================================================ */
+#architecture{background:var(--deep);}
+.arch-header{text-align:center;margin-bottom:64px;}
+.arch-header h2{font-size:clamp(1.9rem,3.5vw,2.9rem);margin-bottom:14px;text-transform:uppercase;}
+.arch-flow{
+  display:flex;align-items:center;justify-content:center;
+  flex-wrap:wrap;row-gap:20px;margin-bottom:56px;
+}
+.arch-n{display:flex;flex-direction:column;align-items:center;gap:9px;min-width:96px;}
+.arch-box{
+  width:64px;height:64px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;font-size:1.5rem;
+  border:1px solid;transition:transform 0.25s;cursor:default;
+}
+.arch-box:hover{transform:scale(1.08);}
+.arch-lbl{font-family:var(--f-mono);font-size:0.55rem;color:var(--txt-300);text-align:center;letter-spacing:0.05em;line-height:1.4;}
+.arch-arr{width:32px;flex-shrink:0;}
+.arch-arr svg{width:100%;height:11px;}
+
+.arch-subgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.arch-sub{padding:22px 20px;border-top:2px solid;}
+.arch-sub.ao{border-color:var(--orange);}
+.arch-sub.aa{border-color:var(--amber);}
+.arch-sub.ag{border-color:var(--green);}
+.arch-sub.ab{border-color:var(--blue);}
+.arch-sub h4{font-family:var(--f-display);font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;}
+.arch-sub ul{display:flex;flex-direction:column;gap:6px;}
+.arch-sub ul li{font-size:0.72rem;color:var(--txt-300);display:flex;gap:7px;font-weight:300;}
+.arch-sub ul li::before{content:'→';font-family:var(--f-mono);font-size:0.58rem;color:var(--txt-500);flex-shrink:0;}
+
+/* ================================================
+   PERFORMANCE
+   ================================================ */
+#performance{background:var(--surface);overflow:hidden;}
+.perf-header{text-align:center;margin-bottom:64px;}
+.perf-header h2{font-size:clamp(1.9rem,3.5vw,2.9rem);margin-bottom:14px;text-transform:uppercase;}
+.perf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.perf-card{padding:30px 26px;text-align:center;position:relative;overflow:hidden;cursor:default;}
+.perf-card::before{
+  content:'';position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);
+  width:120px;height:120px;border-radius:50%;opacity:0.1;filter:blur(35px);
+}
+.pc-o::before{background:var(--orange);}
+.pc-a::before{background:var(--amber);}
+.pc-g::before{background:var(--green);}
+.perf-n{font-family:var(--f-display);font-size:3.2rem;font-weight:900;line-height:1;margin-bottom:7px;letter-spacing:0.02em;}
+.pc-o .perf-n{color:var(--orange);}
+.pc-a .perf-n{color:var(--amber);}
+.pc-g .perf-n{color:var(--green);}
+.perf-m{font-family:var(--f-display);font-size:0.95rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;}
+.perf-d{font-size:0.77rem;color:var(--txt-300);font-weight:300;line-height:1.7;}
+.perf-bar{height:2px;background:rgba(255,255,255,0.05);border-radius:2px;margin-top:18px;}
+.perf-bar-f{height:100%;border-radius:2px;}
+.pc-o .perf-bar-f{background:var(--orange);width:90%;}
+.pc-a .perf-bar-f{background:var(--amber);width:85%;}
+.pc-g .perf-bar-f{background:var(--green);width:95%;}
+.perf-row2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px;}
+
+/* ================================================
+   CHALLENGES
+   ================================================ */
+#challenges{background:var(--deep);}
+.ch-header{text-align:center;margin-bottom:64px;}
+.ch-header h2{font-size:clamp(1.9rem,3.5vw,2.9rem);margin-bottom:14px;text-transform:uppercase;}
+.ch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.ch-card{padding:26px 24px;}
+.ch-id{font-family:var(--f-mono);font-size:0.58rem;color:var(--txt-500);letter-spacing:0.12em;margin-bottom:14px;}
+.ch-card h4{font-family:var(--f-display);font-size:0.95rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:11px;}
+.ch-prob{font-size:0.76rem;color:#f87171;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.14);border-radius:7px;padding:9px 11px;margin-bottom:9px;line-height:1.6;}
+.ch-sol{font-size:0.76rem;color:#4ade80;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.14);border-radius:7px;padding:9px 11px;line-height:1.6;}
+.ch-tag{font-size:0.52rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:4px;opacity:0.7;}
+
+/* ================================================
+   STANDOUT
+   ================================================ */
+#standout{background:var(--surface);}
+.stand-header{text-align:center;margin-bottom:64px;}
+.stand-header h2{font-size:clamp(1.9rem,3.5vw,2.9rem);margin-bottom:14px;text-transform:uppercase;}
+.stand-layout{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+.stand-main{
+  padding:44px 40px;
+  background:linear-gradient(135deg,rgba(249,115,22,0.05),rgba(245,158,11,0.04));
+  border:1px solid rgba(249,115,22,0.12);border-radius:var(--r-xl);position:relative;overflow:hidden;
+}
+.stand-main::before{
+  content:'';position:absolute;top:-60px;right:-60px;
+  width:200px;height:200px;
+  background:radial-gradient(circle,rgba(249,115,22,0.12),transparent 65%);
+}
+.stand-main h3{font-family:var(--f-display);font-size:1.5rem;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:16px;}
+.stand-main p{color:var(--txt-300);font-weight:300;font-size:0.95rem;line-height:1.8;margin-bottom:26px;}
+.stand-pts{display:flex;flex-direction:column;gap:12px;}
+.stand-pt{display:flex;gap:11px;align-items:flex-start;}
+.spt-bullet{
+  width:6px;height:6px;border-radius:50%;background:var(--orange);
+  flex-shrink:0;margin-top:8px;box-shadow:0 0 8px var(--orange);
+}
+.stand-pt p{font-size:0.84rem;color:var(--txt-300);font-weight:300;line-height:1.7;}
+.stand-pt strong{color:var(--txt-100);font-weight:600;}
+.stand-side{display:flex;flex-direction:column;gap:18px;}
+.stand-metric{padding:26px 24px;text-align:center;}
+.sm-v{font-family:var(--f-display);font-size:2.4rem;font-weight:900;letter-spacing:0.02em;line-height:1;margin-bottom:5px;text-transform:uppercase;}
+.sm-l{font-size:0.76rem;color:var(--txt-300);font-weight:300;}
+
+/* ================================================
+   CTA
+   ================================================ */
+#cta{background:var(--deep);padding:130px 0;overflow:hidden;text-align:center;}
+.cta-box{max-width:680px;margin:0 auto;}
+.cta-eye{
+  display:inline-flex;align-items:center;gap:8px;margin-bottom:24px;
+  font-family:var(--f-mono);font-size:0.62rem;color:var(--orange);letter-spacing:0.14em;text-transform:uppercase;
+}
+.cta-line{width:18px;height:1px;background:var(--orange);opacity:0.6;}
+.cta-box h2{font-size:clamp(2.2rem,4.5vw,3.8rem);margin-bottom:18px;text-transform:uppercase;letter-spacing:0.02em;}
+.cta-box p{color:var(--txt-300);font-size:1.0rem;font-weight:300;line-height:1.8;margin-bottom:44px;}
+.cta-btns{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;}
+.btn-cta-p{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--orange);color:#fff;
+  font-family:var(--f-display);font-weight:800;font-size:1.0rem;
+  padding:15px 36px;border-radius:100px;letter-spacing:0.08em;text-transform:uppercase;
+  box-shadow:0 0 40px rgba(249,115,22,0.3);
+  transition:opacity 0.2s,transform 0.15s,box-shadow 0.2s;
+}
+.btn-cta-p:hover{opacity:0.88;transform:translateY(-2px);box-shadow:0 0 60px rgba(249,115,22,0.45);}
+.btn-cta-s{
+  display:inline-flex;align-items:center;gap:8px;
+  background:transparent;color:var(--txt-100);
+  font-family:var(--f-display);font-weight:700;font-size:1.0rem;
+  padding:14px 34px;border-radius:100px;letter-spacing:0.08em;text-transform:uppercase;
+  border:1px solid var(--border2);
+  transition:border-color 0.2s,transform 0.15s;
+}
+.btn-cta-s:hover{border-color:rgba(249,115,22,0.4);transform:translateY(-2px);}
+.cta-trust{
+  margin-top:44px;display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;
+}
+.cta-trust-i{display:flex;align-items:center;gap:7px;font-size:0.74rem;color:var(--txt-500);font-family:var(--f-mono);letter-spacing:0.04em;}
+.cta-trust-i::before{content:'✓';color:var(--orange);font-weight:800;}
+
+/* ================================================
+   FOOTER
+   ================================================ */
+footer{padding:32px 0;border-top:1px solid var(--border);}
+.foot-inner{
+  max-width:1180px;margin:0 auto;padding:0 28px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+}
+.foot-logo{font-family:var(--f-display);font-size:1.0rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;display:flex;align-items:center;gap:8px;}
+.foot-logo-dot{width:10px;height:10px;background:var(--orange);border-radius:50%;box-shadow:0 0 8px var(--orange);}
+.foot-note{font-family:var(--f-mono);font-size:0.58rem;color:var(--txt-500);letter-spacing:0.08em;}
+.foot-badge{font-family:var(--f-mono);font-size:0.58rem;padding:4px 12px;border-radius:5px;background:var(--orange-dim);border:1px solid rgba(249,115,22,0.2);color:var(--orange);letter-spacing:0.06em;}
+
+/* ================================================
+   RESPONSIVE
+   ================================================ */
+@media(max-width:1100px){
+  .hero-layout{gap:40px;}
+  .mod-grid{grid-template-columns:repeat(3,1fr);}
+  .tech-grid{grid-template-columns:repeat(2,1fr);}
+  .arch-subgrid{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:900px){
+  section{padding:72px 0;}
+  .container{padding:0 18px;}
+  nav .nav-chip{display:none;}
+  .hero-layout{grid-template-columns:1fr;gap:48px;}
+  .hero-panels{order:-1;}
+  .hfc-tech,.hfc-sub,.hfc-batt{display:none;}
+  .hero-stats{grid-template-columns:repeat(2,1fr);}
+  .ov-layout{grid-template-columns:1fr;gap:36px;}
+  .scale-strip{grid-template-columns:repeat(2,1fr);}
+  .mod-grid{grid-template-columns:repeat(2,1fr);}
+  .booking-detail-grid{grid-template-columns:1fr;}
+  .svc-types{grid-template-columns:1fr 1fr;}
+  .showcase-grid{grid-template-columns:1fr 1fr;}
+  .sc-wide{grid-column:span 2;}
+  .perf-grid{grid-template-columns:1fr;}
+  .perf-row2{grid-template-columns:1fr;}
+  .ch-grid{grid-template-columns:1fr 1fr;}
+  .arch-subgrid{grid-template-columns:1fr 1fr;}
+  .stand-layout{grid-template-columns:1fr;}
+  .flow-steps{justify-content:flex-start;}
+}
+@media(max-width:600px){
+  .mod-grid{grid-template-columns:1fr 1fr;}
+  .svc-types{grid-template-columns:1fr;}
+  .showcase-grid{grid-template-columns:1fr;}
+  .sc-wide{grid-column:span 1;}
+  .ch-grid{grid-template-columns:1fr;}
+  .arch-subgrid{grid-template-columns:1fr;}
+  .cta-btns{flex-direction:column;width:100%;}
+  .btn-cta-p,.btn-cta-s{width:100%;justify-content:center;}
+  .foot-inner{flex-direction:column;text-align:center;}
+}
+@media print{nav,#cta .orb{display:none;}section{page-break-inside:avoid;}}
+
+/* ================================================
+   ANIMATIONS
+   ================================================ */
+.fade-up{opacity:0;transform:translateY(22px);transition:opacity 0.55s ease,transform 0.55s ease;}
+.fade-up.in{opacity:1;transform:translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="main-nav">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <div class="nav-logo-icon">🔧</div>
+      <span class="nav-logo-text">Erina Assistance</span>
+    </div>
+    <div class="nav-chip">ROADSIDE TECH · CASE STUDY</div>
+    <a href="#cta" class="nav-cta">Hire Me →</a>
+  </div>
+</nav>
+
+<!-- ================================================
+     HERO
+     ================================================ -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-road">
+    <div class="lane-marks">
+      <div class="lane-mark"></div><div class="lane-mark"></div><div class="lane-mark"></div>
+      <div class="lane-mark"></div><div class="lane-mark"></div><div class="lane-mark"></div>
+      <div class="lane-mark"></div><div class="lane-mark"></div>
+    </div>
+  </div>
+  <div class="orb" style="background:var(--orange);width:500px;height:500px;top:20%;left:-100px;"></div>
+  <div class="orb" style="background:var(--amber);width:350px;height:350px;bottom:0;right:-80px;opacity:0.1;"></div>
+
+  <div class="container">
+    <div class="hero-layout">
+
+      <!-- LEFT -->
+      <div>
+        <div class="hero-alert">
+          <div class="alert-pip"></div>
+          <span>Built From Scratch · Full Ecosystem</span>
+        </div>
+
+        <h1 class="hero-h1">
+          Erina<br><span class="h1-accent">Assistance</span>
+        </h1>
+        <p class="hero-h1-sub">Roadside Help · Battery Sales · On-Demand Services</p>
+        <div class="hero-rule"></div>
+
+        <p class="hero-desc">
+          A <strong>full-stack roadside assistance &amp; battery e-commerce platform</strong> built from scratch — covering a customer-facing website, mobile app, admin panel, and hub panel. RSA, Towing, Fitment, subscriptions, and an end-to-end product catalogue, all in one ecosystem.
+        </p>
+
+        <div class="badge-row">
+          <span class="bdg bo">React.js</span>
+          <span class="bdg bo">Next.js</span>
+          <span class="bdg bo">React Native</span>
+          <span class="bdg ba">NestJS</span>
+          <span class="bdg ba">Node.js</span>
+          <span class="bdg bg">MongoDB</span>
+          <span class="bdg bg">PostgreSQL</span>
+          <span class="bdg bb">Redis</span>
+          <span class="bdg bb">Bull Queues</span>
+          <span class="bdg bs">Google Maps API</span>
+          <span class="bdg bs">WhatsApp API</span>
+          <span class="bdg bo">Firebase FCM</span>
+          <span class="bdg ba">AWS · S3</span>
+          <span class="bdg bg">Docker · CI/CD</span>
+        </div>
+
+        <div class="hero-stats">
+          <div class="hst">
+            <div class="hst-n" style="color:var(--orange);">3</div>
+            <div class="hst-l">Panels Built</div>
+          </div>
+          <div class="hst">
+            <div class="hst-n" style="color:var(--amber);">11+</div>
+            <div class="hst-l">Website Modules</div>
+          </div>
+          <div class="hst">
+            <div class="hst-n" style="color:var(--green);">13+</div>
+            <div class="hst-l">Admin Modules</div>
+          </div>
+          <div class="hst">
+            <div class="hst-n" style="color:var(--blue);">3</div>
+            <div class="hst-l">Service Types</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT — App Panel Preview -->
+      <div class="hero-panels">
+
+        <!-- Floating: Technician assigned -->
+        <div class="hfc hfc-tech">
+          <div class="hfc-label">Technician Assigned</div>
+          <div class="hfc-title">Rahul Sharma</div>
+          <div class="hfc-sub-text">RSA · Flat Tyre · 2.4 km away</div>
+          <div class="hfc-divider"></div>
+          <div class="hfc-row">
+            <span class="hfc-pill fp-green">● On the Way</span>
+            <span class="hfc-eta" style="font-family:var(--f-display);font-size:0.9rem;font-weight:800;color:var(--orange);">ETA 8 min</span>
+          </div>
+        </div>
+
+        <!-- Floating: Subscription -->
+        <div class="hfc hfc-batt">
+          <div class="hfc-label">Active Plan</div>
+          <div class="hfc-val">₹1,299</div>
+          <div class="hfc-sub-text" style="margin-top:3px;">Car Premium AMC</div>
+          <div class="hfc-divider"></div>
+          <div class="hfc-pill fp-orange" style="font-size:0.6rem;">3 uses remaining</div>
+        </div>
+
+        <!-- Floating: Order -->
+        <div class="hfc hfc-sub">
+          <div class="hfc-label">Order Dispatched</div>
+          <div class="hfc-title">Exide FTZ-B5L Battery</div>
+          <div class="hfc-sub-text">Two Wheeler · 12V 5Ah</div>
+          <div class="hfc-divider"></div>
+          <div class="hfc-row">
+            <span class="hfc-pill fp-green">● Out for Delivery</span>
+          </div>
+          <div class="hfc-sub-stat" style="margin-top:4px;">Expected: <strong>Today, 4–6 PM</strong></div>
+        </div>
+
+        <!-- Main panel -->
+        <div class="hp-main">
+          <!-- Map -->
+          <div class="hp-map">
+            <div class="hp-map-grid"></div>
+            <div class="hp-road-h"></div>
+            <div class="hp-road-v"></div>
+            <div class="hp-pin"></div>
+            <div class="hp-truck">🚐</div>
+            <!-- Search box overlay -->
+            <div style="position:absolute;top:10px;left:10px;right:10px;z-index:3;">
+              <div style="background:rgba(14,15,20,0.9);border:1px solid rgba(249,115,22,0.2);border-radius:8px;padding:7px 12px;display:flex;align-items:center;gap:7px;">
+                <span style="font-size:0.65rem;">🔍</span>
+                <span style="font-size:0.65rem;color:rgba(255,255,255,0.4);">Search or drag map pin to select location...</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status bar -->
+          <div class="hp-status-bar">
+            <div class="hp-sb-left">
+              <div class="hp-sb-dot"></div>
+              <div>
+                <div class="hp-sb-text">Technician En Route</div>
+                <div class="hp-sb-sub">RSA — Flat Tyre Repair · Connaught Place</div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:0.55rem;color:var(--txt-500);text-align:right;margin-bottom:1px;">ETA</div>
+              <div class="hp-eta">8 min</div>
+            </div>
+          </div>
+
+          <!-- Booking steps -->
+          <div class="hp-steps">
+            <div class="hp-step active">
+              <div class="hp-step-ico ico-done">✓</div>
+              <span class="hp-step-label">Vehicle Selected</span>
+              <span class="hp-step-sub">MH12 AB 1234 · Honda City</span>
+            </div>
+            <div class="hp-step active">
+              <div class="hp-step-ico ico-done">✓</div>
+              <span class="hp-step-label">Location Confirmed</span>
+              <span class="hp-step-sub">Connaught Place, Delhi</span>
+            </div>
+            <div class="hp-step active">
+              <div class="hp-step-ico ico-active">🔧</div>
+              <span class="hp-step-label">Technician Assigned</span>
+              <span class="hp-step-sub" style="color:var(--orange);">In Progress</span>
+            </div>
+            <div class="hp-step" style="opacity:0.4;">
+              <div class="hp-step-ico ico-wait">💳</div>
+              <span class="hp-step-label">Payment</span>
+              <span class="hp-step-sub">Pending</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule"></div>
+
+<!-- ================================================
+     OVERVIEW
+     ================================================ -->
+<section id="overview">
+  <div class="orb" style="background:var(--amber);width:400px;height:400px;top:0;right:-80px;opacity:0.1;"></div>
+  <div class="container">
+    <div class="ov-layout">
+      <div class="ov-left fade-up">
+        <div class="section-tag">Platform Overview</div>
+        <h2>One Ecosystem.<br>Three Panels.<br><span class="grad-text">Every Use Case Covered.</span></h2>
+        <p>Erina Assistance is a comprehensive roadside assistance and vehicle battery e-commerce platform — covering everything from a customer-facing website with battery product discovery, to on-demand field service booking, to a full admin management panel, to a hub-level operations panel for technicians and delivery staff.</p>
+        <p>Built entirely from scratch with a modern MERN stack. Three distinct user interfaces sharing a unified NestJS backend — each tailored to its audience without compromising on shared data integrity or realtime sync.</p>
+      </div>
+      <div class="fade-up">
+        <div class="ov-panels">
+          <div class="ov-panel">
+            <div class="ov-panel-icon" style="background:var(--orange-dim);">🌐</div>
+            <div>
+              <h4>Customer Website + App</h4>
+              <p>Landing page, battery product catalogue, service booking flow, subscriptions, cart &amp; checkout, order/service tracking, profile management.</p>
+            </div>
+            <div class="ov-panel-tag" style="background:var(--orange-dim);border-color:rgba(249,115,22,0.2);color:var(--orange);">11 Modules</div>
+          </div>
+          <div class="ov-panel">
+            <div class="ov-panel-icon" style="background:var(--amber-dim);">⚙️</div>
+            <div>
+              <h4>Admin Panel</h4>
+              <p>Full product management, service management, customer management, warehouse &amp; hubs, subscriptions, notifications, SEO &amp; content, issue tickets, FAQs, blogs.</p>
+            </div>
+            <div class="ov-panel-tag" style="background:var(--amber-dim);border-color:rgba(245,158,11,0.2);color:var(--amber);">13 Modules</div>
+          </div>
+          <div class="ov-panel">
+            <div class="ov-panel-icon" style="background:var(--green-dim);">🏪</div>
+            <div>
+              <h4>Hub Panel</h4>
+              <p>Hub-level technician and delivery management, service request accept/reject, product delivery management, status updates, report uploads, assignment flows.</p>
+            </div>
+            <div class="ov-panel-tag" style="background:var(--green-dim);border-color:rgba(34,197,94,0.2);color:var(--green);">Ops Panel</div>
+          </div>
+        </div>
+        <div class="scale-strip">
+          <div class="ss-item"><div class="ss-n">3</div><div class="ss-l">Service Types</div></div>
+          <div class="ss-item"><div class="ss-n">5+</div><div class="ss-l">Category Levels</div></div>
+          <div class="ss-item"><div class="ss-n">COD+</div><div class="ss-l">Payment Options</div></div>
+          <div class="ss-item"><div class="ss-n">Live</div><div class="ss-l">Tracking (App)</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule"></div>
+
+<!-- ================================================
+     MODULES
+     ================================================ -->
+<section id="modules">
+  <div class="orb" style="background:var(--orange);width:400px;height:400px;bottom:0;left:-100px;opacity:0.08;"></div>
+  <div class="container">
+    <div class="mod-header fade-up">
+      <div class="section-tag">Module Breakdown</div>
+      <h2>Every Module. <span class="grad-text">Built to Production Standard.</span></h2>
+      <p>27+ modules across three panels. Each independently developed, tested, and integrated via a shared NestJS backend.</p>
+    </div>
+
+    <!-- Website modules -->
+    <div style="margin-bottom:14px;" class="fade-up">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <span style="font-family:var(--f-display);font-size:0.85rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--orange);">Customer Website &amp; App</span>
+        <span style="flex:1;height:1px;background:var(--border);"></span>
+      </div>
+      <div class="mod-grid">
+        <div class="glass mod-card fade-up">
+          <span class="mod-card-num">W01</span>
+          <div class="mod-card-icon" style="background:var(--orange-dim);">🏠</div>
+          <h4>Landing Page</h4>
+          <p>Full marketing page with hero, on-demand service highlights, testimonials, product categories, about us, and footer.</p>
+          <div class="mod-sub-items">
+            <div class="mod-sub-item">Responsive navbar + login</div>
+            <div class="mod-sub-item">WhatsApp / Call / Web service channels</div>
+            <div class="mod-sub-item">Category preview with view-more</div>
+          </div>
+        </div>
+        <div class="glass mod-card fade-up">
+          <span class="mod-card-num">W02</span>
+          <div class="mod-card-icon" style="background:var(--amber-dim);">🔋</div>
+          <h4>Product Catalogue</h4>
+          <p>5-level drill-down: Category → Brand → Model → Fuel Type → Products, each with a dedicated header and search.</p>
+          <div class="mod-sub-items">
+            <div class="mod-sub-item">Category → brand → model → fuel → product</div>
+            <div class="mod-sub-item">Product detail with pincode delivery check</div>
+            <div class="mod-sub-item">Ratings, warranty info, specifications</div>
+          </div>
+        </div>
+        <div class="glass mod-card fade-up">
+          <span class="mod-card-num">W03</span>
+          <div class="mod-card-icon" style="background:var(--green-dim);">🛒</div>
+          <h4>Cart &amp; Checkout</h4>
+          <p>Full cart → address selection → payment flow with COD and online payment options, order confirmation.</p>
+          <div class="mod-sub-items">
+            <div class="mod-sub-item">Product list with quantity control</div>
+            <div class="mod-sub-item">Payment summary + delivery charges + GST</div>
+            <div class="mod-sub-item">Address list + add/select address</div>
+          </div>
+        </div>
+        <div class="glass mod-card fade-up">
+          <span class="mod-card-num">W04</span>
+          <div class="mod-card-icon" style="background:var(--blue-dim);">🔑</div>
+          <h4>Authentication</h4>
+          <p>Mobile OTP login and registration. Minimal, fast, trusted flow built for Indian mobile numbers.</p>
+          <div class="mod-sub-items">
+            <div class="mod-sub-item">OTP-based mobile login</div>
+            <div class="mod-sub-item">Register with full name, email, mobile</div>
+          </div>
+        </div>
+        <div class="glass mod-card fade-up">
+          <span class="mod-card-num">W05</span>
+          <div class="mod-card-icon" style="background:var(--orange-dim);">🚗</div>
+          <h4>Service Booking</h4>
+          <p>Multi-step booking: vehicle → location (Google Maps) → service selection → schedule → payment.</p>
+          <div class="mod-sub-items">
+            <div class="mod-sub-item">RSA · Towing · Fitment services</div>
+            <div class="mod-sub-item">Draggable map pin for location</div>
+            <div class="mod-sub-item">Towing with drop location + KM pricing</div>
+          </div>
+        </div>
+        <div class="glass mod-card fade-up">
+          <span class="mod-card-num">W06</span>
+          <div class="mod-card-icon" style="background:var(--amber-dim);">📦</div>
+          <h4>Order &amp; Service History</h4>
+          <p>Complete history of product orders and service bookings with status tracking, reviews, and payment summary.</p>
+          <div class="mod-sub-items">
+            <div class="mod-sub-item">Service status timeline + live tracking (app)</div>
+            <div class="mod-sub-item">Product return process</div>
+            <div class="mod-sub-item">Review and rating submission</div>
+          </div>
+        </div>
+        <div class="glass mod-card fade-up">
+          <span class="mod-card-num">W07</span>
+          <div class="mod-card-icon" style="background:var(--green-dim);">🎫</div>
+          <h4>Subscriptions</h4>
+          <p>Multi-category subscription packages (Car, Bike, UPS, Solar) with dynamic benefit fields, usage tracking, renew &amp; avail flows.</p>
+          <div class="mod-sub-items">
+            <div class="mod-sub-item">Purchase / list / avail / renew / delete</div>
+            <div class="mod-sub-item">Dynamic benefit display per package</div>
+          </div>
+        </div>
+        <div class="glass mod-card fade-up">
+          <span class="mod-card-num">W08</span>
+          <div class="mod-card-icon" style="background:var(--blue-dim);">👤</div>
+          <h4>Profile + Vehicles + Address</h4>
+          <p>User profile editing, saved address management with default address, and vehicle list with manual/number-plate add.</p>
+          <div class="mod-sub-items">
+            <div class="mod-sub-item">Vehicle add by number plate or manual</div>
+            <div class="mod-sub-item">Address CRUD with default flag</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin modules -->
+    <div style="margin-bottom:14px;margin-top:36px;" class="fade-up">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <span style="font-family:var(--f-display);font-size:0.85rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--amber);">Admin Panel</span>
+        <span style="flex:1;height:1px;background:var(--border);"></span>
+      </div>
+      <div class="mod-grid">
+        <div class="glass mod-card fade-up">
+          <span class="mod-card-num">A01</span>
+          <div class="mod-card-icon" style="background:var(--amber-dim);">🔋</div>
+          <h4>Product Management</h4>
+          <p>Full CRUD for categories, brands, models, fuel types, and products with dynamic metadata fields and multiple images.</p>
+          <div class="mod-sub-items">
+            <div class="mod-sub-item">5-level hierarchy management</div>
+            <div class="mod-sub-item">Dynamic meta fields, highlights, warranties</div>
+          </div>
+        </div>
+        <div class="glass mod-card fade-up">
+          <span class="mod-card-num">A02</span>
+          <div class="mod-card-icon" style="background:var(--orange-dim);">🔧</div>
+          <h4>Service Management</h4>
+          <p>Service categories, sub-categories, individual services with rich text descriptions, pricing, and vehicle brand/model management.</p>
+          <div class="mod-sub-items">
+            <div class="mod-sub-item">RSA / Towing / Fitment category control</div>
+            <div class="mod-sub-item">Admin-created service on behalf of customer</div>
+          </div>
+        </div>
+        <div class="glass mod-card fade-up">
+          <span class="mod-card-num">A03</span>
+          <div class="mod-card-icon" style="background:var(--blue-dim);">📊</div>
+          <h4>Orders &amp; Bookings</h4>
+          <p>Product order list and service booking list with full detail views, status management, invoice generation, and technician assignment.</p>
+          <div class="mod-sub-items">
+            <div class="mod-sub-item">Assign technician / delivery person</div>
+            <div class="mod-sub-item">Product return process management</div>
+          </div>
+        </div>
+        <div class="glass mod-card fade-up">
+          <span class="mod-card-num">A04</span>
+          <div class="mod-card-icon" style="background:var(--green-dim);">🏭</div>
+          <h4>Warehouse &amp; Hubs</h4>
+          <p>Warehouse CRUD with Google Maps location pin, hub CRUD linked to warehouses, full address management with live map preview.</p>
+          <div class="mod-sub-items">
+            <div class="mod-sub-item">Draggable map pin location selection</div>
+            <div class="mod-sub-item">One warehouse → multiple hubs</div>
+          </div>
+        </div>
+        <div class="glass mod-card fade-up">
+          <span class="mod-card-num">A05</span>
+          <div class="mod-card-icon" style="background:var(--orange-dim);">🎫</div>
+          <h4>Subscription Management</h4>
+          <p>Dynamic subscription category and sub-category management with configurable benefit fields (number, dropdown, yes/no, percentage, time).</p>
+          <div class="mod-sub-items">
+            <div class="mod-sub-item">Fully dynamic field schema per category</div>
+            <div class="mod-sub-item">Car / Bike / UPS / Solar packages</div>
+          </div>
+        </div>
+        <div class="glass mod-card fade-up">
+          <span class="mod-card-num">A06</span>
+          <div class="mod-card-icon" style="background:var(--blue-dim);">📢</div>
+          <h4>Notifications + SEO + Content</h4>
+          <p>Push notification scheduling with audience targeting, and per-page SEO tag management with dynamic content editing.</p>
+          <div class="mod-sub-items">
+            <div class="mod-sub-item">Scheduled notifications with audience type</div>
+            <div class="mod-sub-item">Per-page meta/SEO dynamic management</div>
+          </div>
+        </div>
+        <div class="glass mod-card fade-up">
+          <span class="mod-card-num">A07</span>
+          <div class="mod-card-icon" style="background:var(--amber-dim);">🎫</div>
+          <h4>Issue Tickets + Feedback</h4>
+          <p>Customer-raised issue ticket management with chat history, status updates, admin response, and feedback list with delete and reply options.</p>
+        </div>
+        <div class="glass mod-card fade-up">
+          <span class="mod-card-num">A08</span>
+          <div class="mod-card-icon" style="background:var(--green-dim);">📄</div>
+          <h4>Blogs + FAQs + Agreements</h4>
+          <p>Rich text editor for blogs, FAQ management, and 8 agreement pages (T&amp;C, privacy policy, battery safety, scrap tips, etc.).</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule"></div>
+
+<!-- ================================================
+     SERVICE BOOKING FLOW
+     ================================================ -->
+<section id="booking">
+  <div class="container">
+    <div class="book-header fade-up">
+      <div class="section-tag">Service Booking Flow</div>
+      <h2>6-Step Booking. <span class="grad-text">Zero Friction.</span></h2>
+      <p>The service booking flow is the most complex interaction in the platform — a multi-step wizard with Google Maps, dynamic service pricing, and schedule selection.</p>
+    </div>
+
+    <!-- Flow steps -->
+    <div class="flow-steps fade-up">
+      <div class="flow-step">
+        <div class="flow-step-circle fsc-1">🚗</div>
+        <div class="flow-step-label">Select<br>Vehicle</div>
+      </div>
+      <div class="flow-arr"><svg viewBox="0 0 30 12" fill="none"><defs><linearGradient id="fa1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#f97316"/><stop offset="100%" stop-color="#f59e0b"/></linearGradient></defs><path d="M0 6L22 6M18 2.5l5 3.5-5 3.5" stroke="url(#fa1)" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <div class="flow-step">
+        <div class="flow-step-circle fsc-2">📍</div>
+        <div class="flow-step-label">Pick<br>Location</div>
+      </div>
+      <div class="flow-arr"><svg viewBox="0 0 30 12" fill="none"><defs><linearGradient id="fa2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#22c55e"/></linearGradient></defs><path d="M0 6L22 6M18 2.5l5 3.5-5 3.5" stroke="url(#fa2)" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <div class="flow-step">
+        <div class="flow-step-circle fsc-3">🔧</div>
+        <div class="flow-step-label">Choose<br>Service</div>
+      </div>
+      <div class="flow-arr"><svg viewBox="0 0 30 12" fill="none"><defs><linearGradient id="fa3" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22c55e"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path d="M0 6L22 6M18 2.5l5 3.5-5 3.5" stroke="url(#fa3)" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <div class="flow-step">
+        <div class="flow-step-circle fsc-4">📅</div>
+        <div class="flow-step-label">Schedule<br>+  Bill</div>
+      </div>
+      <div class="flow-arr"><svg viewBox="0 0 30 12" fill="none"><defs><linearGradient id="fa4" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#a855f7"/></linearGradient></defs><path d="M0 6L22 6M18 2.5l5 3.5-5 3.5" stroke="url(#fa4)" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <div class="flow-step">
+        <div class="flow-step-circle fsc-5">💳</div>
+        <div class="flow-step-label">Payment</div>
+      </div>
+      <div class="flow-arr"><svg viewBox="0 0 30 12" fill="none"><defs><linearGradient id="fa5" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a855f7"/><stop offset="100%" stop-color="#f97316"/></linearGradient></defs><path d="M0 6L22 6M18 2.5l5 3.5-5 3.5" stroke="url(#fa5)" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <div class="flow-step">
+        <div class="flow-step-circle fsc-6">✅</div>
+        <div class="flow-step-label">Service<br>Detail</div>
+      </div>
+    </div>
+
+    <!-- Service Types -->
+    <div class="svc-types fade-up">
+      <div class="svc-type">
+        <div class="svc-type-icon">🛠️</div>
+        <h4>RSA — Roadside Assistance</h4>
+        <p>On-site help from a certified technician for common vehicle failures. Service list shown after location selection with price + 18% GST.</p>
+        <div class="svc-type-services">
+          <span class="svc-tag">Flat Tyre</span>
+          <span class="svc-tag">Battery Jumpstart</span>
+          <span class="svc-tag">Starting Problem</span>
+          <span class="svc-tag">Minor Repair</span>
+          <span class="svc-tag">Fuel Delivery</span>
+        </div>
+      </div>
+      <div class="svc-type" style="border-color:rgba(245,158,11,0.2);">
+        <div class="svc-type-icon">🚛</div>
+        <h4>Towing</h4>
+        <p>Vehicle towing service with a mandatory drop location. Distance calculated in KM, towing vehicle options shown with per-KM pricing.</p>
+        <div class="svc-type-services">
+          <span class="svc-tag" style="background:var(--amber-dim);border-color:rgba(245,158,11,0.2);color:var(--amber);">Pickup Location</span>
+          <span class="svc-tag" style="background:var(--amber-dim);border-color:rgba(245,158,11,0.2);color:var(--amber);">Drop Location</span>
+          <span class="svc-tag" style="background:var(--amber-dim);border-color:rgba(245,158,11,0.2);color:var(--amber);">KM-Based Pricing</span>
+          <span class="svc-tag" style="background:var(--amber-dim);border-color:rgba(245,158,11,0.2);color:var(--amber);">Vehicle Options</span>
+        </div>
+      </div>
+      <div class="svc-type" style="border-color:rgba(34,197,94,0.2);">
+        <div class="svc-type-icon">🔩</div>
+        <h4>Fitment</h4>
+        <p>Battery or accessory fitment at the customer's location. Technician dispatched with the correct battery SKU from the nearest hub.</p>
+        <div class="svc-type-services">
+          <span class="svc-tag" style="background:var(--green-dim);border-color:rgba(34,197,94,0.2);color:var(--green);">Battery Fitment</span>
+          <span class="svc-tag" style="background:var(--green-dim);border-color:rgba(34,197,94,0.2);color:var(--green);">At-Location</span>
+          <span class="svc-tag" style="background:var(--green-dim);border-color:rgba(34,197,94,0.2);color:var(--green);">Hub Dispatch</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Booking detail cards -->
+    <div class="booking-detail-grid" style="margin-top:32px;">
+      <div class="glass bk-card fade-up">
+        <h4>Location Step</h4>
+        <div class="bk-items">
+          <div class="bk-item">Google Maps embedded with draggable location pin</div>
+          <div class="bk-item">Search input with autocomplete suggestions</div>
+          <div class="bk-item">Flat/door/street number + landmark fields</div>
+          <div class="bk-item">Selected address displayed below map before proceeding</div>
+        </div>
+      </div>
+      <div class="glass bk-card fade-up">
+        <h4>Towing Drop Location</h4>
+        <div class="bk-items">
+          <div class="bk-item">Secondary Google Maps for drop location</div>
+          <div class="bk-item">Total KM distance calculated in real-time</div>
+          <div class="bk-item">Available towing vehicles listed with name, icon, price</div>
+          <div class="bk-item">Hover info button with full towing details modal</div>
+        </div>
+      </div>
+      <div class="glass bk-card fade-up">
+        <h4>Schedule + Bill</h4>
+        <div class="bk-items">
+          <div class="bk-item">Calendar date strip with horizontal scroll</div>
+          <div class="bk-item">Time slots loaded dynamically per selected date</div>
+          <div class="bk-item">Bill breakdown: service price + taxes + total</div>
+          <div class="bk-item">Public URL generated post-booking for sharing</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule"></div>
+
+<!-- ================================================
+     UI SHOWCASE
+     ================================================ -->
+<section id="showcase">
+  <div class="container">
+    <div class="show-header fade-up">
+      <div class="section-tag">UI Showcase</div>
+      <h2>Three Panels. <span class="grad-text">One Ecosystem.</span></h2>
+    </div>
+    <div class="showcase-grid">
+
+      <!-- Admin panel mockup (wide) -->
+      <div class="sc sc-wide fade-up">
+        <div class="mock-admin">
+          <div class="mock-admin-sidebar">
+            <div class="mad-logo">E</div>
+            <div class="mad-icon active">📊</div>
+            <div class="mad-icon">🔋</div>
+            <div class="mad-icon">🔧</div>
+            <div class="mad-icon">👥</div>
+            <div class="mad-icon">🏭</div>
+            <div class="mad-icon">🎫</div>
+            <div class="mad-icon">📢</div>
+            <div class="mad-icon">⚙️</div>
+          </div>
+          <div class="mock-admin-main">
+            <div class="mad-header">
+              <span class="mad-title">Service Bookings</span>
+              <span class="mad-badge">247 Total</span>
+            </div>
+            <div class="mad-stats">
+              <div class="mad-stat"><div class="mad-stat-n" style="color:var(--orange);">84</div><div class="mad-stat-l">Active</div></div>
+              <div class="mad-stat"><div class="mad-stat-n" style="color:var(--green);">142</div><div class="mad-stat-l">Completed</div></div>
+              <div class="mad-stat"><div class="mad-stat-n" style="color:var(--amber);">21</div><div class="mad-stat-l">Pending</div></div>
+            </div>
+            <div class="mad-table">
+              <div class="mad-table-head">
+                <div class="mad-th">Booking ID</div>
+                <div class="mad-th">Service</div>
+                <div class="mad-th">Customer</div>
+                <div class="mad-th">Vehicle</div>
+                <div class="mad-th">Status</div>
+              </div>
+              <div class="mad-row">
+                <div class="mad-cell" style="font-family:var(--f-mono);">#BK2401</div>
+                <div class="mad-cell">RSA – Flat Tyre</div>
+                <div class="mad-cell">Amit Kumar</div>
+                <div class="mad-cell">MH12-AB-1234</div>
+                <div class="mad-status ms-active">In Progress</div>
+              </div>
+              <div class="mad-row">
+                <div class="mad-cell" style="font-family:var(--f-mono);">#BK2400</div>
+                <div class="mad-cell">Towing</div>
+                <div class="mad-cell">Priya Singh</div>
+                <div class="mad-cell">DL08-XY-5678</div>
+                <div class="mad-status ms-done">Completed</div>
+              </div>
+              <div class="mad-row">
+                <div class="mad-cell" style="font-family:var(--f-mono);">#BK2399</div>
+                <div class="mad-cell">Fitment</div>
+                <div class="mad-cell">Rajan Mehta</div>
+                <div class="mad-cell">GJ01-CD-9012</div>
+                <div class="mad-status ms-pending">Scheduled</div>
+              </div>
+              <div class="mad-row">
+                <div class="mad-cell" style="font-family:var(--f-mono);">#BK2398</div>
+                <div class="mad-cell">RSA – Jump Start</div>
+                <div class="mad-cell">Sunita Rao</div>
+                <div class="mad-cell">KA09-EF-3456</div>
+                <div class="mad-status ms-done">Completed</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="sc-lbl">
+          <h4>Admin Panel — Service Booking Management</h4>
+          <p>Full CRUD · Status management · Technician assignment · Invoice · Filter &amp; sort</p>
+        </div>
+      </div>
+
+      <!-- Product catalogue mockup -->
+      <div class="sc fade-up">
+        <div class="mock-products">
+          <div style="font-family:var(--f-display);font-size:0.72rem;font-weight:800;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Choose Category</div>
+          <div class="mock-cat-grid">
+            <div class="mock-cat" style="border-color:rgba(249,115,22,0.25);background:rgba(249,115,22,0.04);">
+              <div class="mock-cat-icon">🏍️</div>
+              <div class="mock-cat-label">Two Wheeler</div>
+            </div>
+            <div class="mock-cat">
+              <div class="mock-cat-icon">🚗</div>
+              <div class="mock-cat-label">Car</div>
+            </div>
+            <div class="mock-cat">
+              <div class="mock-cat-icon">🚌</div>
+              <div class="mock-cat-label">Commercial</div>
+            </div>
+            <div class="mock-cat">
+              <div class="mock-cat-icon">🛺</div>
+              <div class="mock-cat-label">Three Wheeler</div>
+            </div>
+            <div class="mock-cat">
+              <div class="mock-cat-icon">🚜</div>
+              <div class="mock-cat-label">Tractor</div>
+            </div>
+            <div class="mock-cat">
+              <div class="mock-cat-icon">⚡</div>
+              <div class="mock-cat-label">E-Vehicle</div>
+            </div>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,0.05);margin:8px 0;"></div>
+          <div class="mock-products-title" style="margin-bottom:6px;">Honda Activa · Petrol — 3 Products</div>
+          <div class="mock-prod-list">
+            <div class="mock-prod-item">
+              <div class="mock-prod-img">🔋</div>
+              <div>
+                <div class="mock-prod-name">Exide Bikerz-BITZ5L</div>
+                <div class="mock-prod-rating">★★★★½ · 42 reviews</div>
+              </div>
+              <div class="mock-prod-price">₹1,249</div>
+            </div>
+            <div class="mock-prod-item">
+              <div class="mock-prod-img">🔋</div>
+              <div>
+                <div class="mock-prod-name">Amaron Pro FTZ-B5L</div>
+                <div class="mock-prod-rating">★★★★★ · 87 reviews</div>
+              </div>
+              <div class="mock-prod-price">₹1,399</div>
+            </div>
+          </div>
+        </div>
+        <div class="sc-lbl">
+          <h4>Product Catalogue — 5-Level Drill-Down</h4>
+          <p>Category → Brand → Model → Fuel → Product list</p>
+        </div>
+      </div>
+
+      <!-- Subscription mockup -->
+      <div class="sc fade-up">
+        <div class="mock-subs">
+          <div style="font-family:var(--f-display);font-size:0.72rem;font-weight:800;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">Subscription Plans — Car</div>
+          <div class="mock-sub-cards">
+            <div class="mock-sub-card">
+              <div class="msc-header">
+                <div class="msc-name">Basic</div>
+                <div class="msc-price">₹699</div>
+              </div>
+              <div class="msc-benefits">
+                <span class="msc-benefit active">2 RSA calls</span>
+                <span class="msc-benefit active">Battery check</span>
+                <span class="msc-benefit">Priority</span>
+              </div>
+            </div>
+            <div class="mock-sub-card featured">
+              <div class="msc-header">
+                <div class="msc-name" style="color:var(--orange);">Premium ★</div>
+                <div class="msc-price">₹1,299</div>
+              </div>
+              <div class="msc-benefits">
+                <span class="msc-benefit active">5 RSA calls</span>
+                <span class="msc-benefit active">1 Towing</span>
+                <span class="msc-benefit active">Priority</span>
+                <span class="msc-benefit active">Free fitment</span>
+              </div>
+            </div>
+            <div class="mock-sub-card">
+              <div class="msc-header">
+                <div class="msc-name">Platinum</div>
+                <div class="msc-price">₹2,199</div>
+              </div>
+              <div class="msc-benefits">
+                <span class="msc-benefit active">Unlimited RSA</span>
+                <span class="msc-benefit active">3 Towing</span>
+                <span class="msc-benefit active">Home visit</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="sc-lbl">
+          <h4>Subscription Plans — Dynamic Packages</h4>
+          <p>Car · Bike · UPS · Solar · Dynamic benefit fields</p>
+        </div>
+      </div>
+
+      <!-- Hub panel mockup -->
+      <div class="sc fade-up">
+        <div class="mock-hub">
+          <div class="mock-hub-header">
+            <div class="mhh-logo">H</div>
+            <span class="mhh-title">Hub Panel — Connaught Place</span>
+            <div class="mhh-status"><div style="width:5px;height:5px;background:var(--green);border-radius:50%;"></div>Live</div>
+          </div>
+          <div style="font-size:0.58rem;color:rgba(255,255,255,0.3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;">Today's Queue — 6 Requests</div>
+          <div class="mock-svc-rows">
+            <div class="mock-svc-row">
+              <div class="msvc-icon" style="background:var(--orange-dim);">🛠️</div>
+              <div>
+                <div class="msvc-name">RSA — Flat Tyre</div>
+                <div class="msvc-vehicle">MH12-AB-1234 · Connaught Place</div>
+              </div>
+              <div class="msvc-status" style="background:var(--orange-dim);color:var(--orange);">Assigned</div>
+            </div>
+            <div class="mock-svc-row">
+              <div class="msvc-icon" style="background:var(--green-dim);">🔩</div>
+              <div>
+                <div class="msvc-name">Fitment Service</div>
+                <div class="msvc-vehicle">DL08-XY-5678 · Karol Bagh</div>
+              </div>
+              <div class="msvc-status" style="background:var(--green-dim);color:var(--green);">En Route</div>
+            </div>
+            <div class="mock-svc-row">
+              <div class="msvc-icon" style="background:var(--amber-dim);">📦</div>
+              <div>
+                <div class="msvc-name">Product Delivery</div>
+                <div class="msvc-vehicle">Exide FTZ-B5L · Sector 15</div>
+              </div>
+              <div class="msvc-status" style="background:var(--amber-dim);color:var(--amber);">Out for Del.</div>
+            </div>
+            <div class="mock-svc-row" style="opacity:0.5;">
+              <div class="msvc-icon" style="background:rgba(255,255,255,0.04);">🚛</div>
+              <div>
+                <div class="msvc-name">Towing Request</div>
+                <div class="msvc-vehicle">GJ01-CD-9012 · Rajouri Garden</div>
+              </div>
+              <div class="msvc-status" style="background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.3);">Pending</div>
+            </div>
+          </div>
+        </div>
+        <div class="sc-lbl">
+          <h4>Hub Panel — Operations</h4>
+          <p>Accept/reject · Assign technician · Status updates · Reports</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule"></div>
+
+<!-- ================================================
+     TECH HIGHLIGHTS
+     ================================================ -->
+<section id="tech">
+  <div class="container">
+    <div class="tech-header fade-up">
+      <div class="section-tag">Technical Deep Dive</div>
+      <h2>Engineering That Powers <span class="grad-text">Every Roadside Moment.</span></h2>
+    </div>
+    <div class="tech-grid">
+      <div class="glass tech-card fade-up" data-n="01">
+        <div class="tech-icon" style="background:var(--orange-dim);">📍</div>
+        <h4>Google Maps Integration</h4>
+        <p>Draggable pin location selection on service booking and warehouse/hub creation. Autocomplete search with Places API. Drop location for towing with real-time distance calculation.</p>
+        <span class="tech-tag" style="background:var(--orange-dim);border:1px solid rgba(249,115,22,0.2);color:var(--orange);">Places API · Geocoding · Distance Matrix</span>
+      </div>
+      <div class="glass tech-card fade-up" data-n="02">
+        <div class="tech-icon" style="background:var(--amber-dim);">🎫</div>
+        <h4>Dynamic Subscription Schema</h4>
+        <p>Subscription categories define field schemas (number, dropdown, yes/no, percentage, time). Each subscription package inherits and customizes these fields. Fully dynamic at runtime — no hardcoded fields.</p>
+        <span class="tech-tag" style="background:var(--amber-dim);border:1px solid rgba(245,158,11,0.2);color:var(--amber);">MongoDB Dynamic Schema · Admin-Configurable</span>
+      </div>
+      <div class="glass tech-card fade-up" data-n="03">
+        <div class="tech-icon" style="background:var(--green-dim);">🔗</div>
+        <h4>Public Service URL Generation</h4>
+        <p>After every service booking (by customer or admin), a unique shareable public URL is generated. Admin can share via WhatsApp. Third-party service recipients can view status without login.</p>
+        <span class="tech-tag" style="background:var(--green-dim);border:1px solid rgba(34,197,94,0.2);color:var(--green);">JWT-Signed Tokens · Public Read API</span>
+      </div>
+      <div class="glass tech-card fade-up" data-n="04">
+        <div class="tech-icon" style="background:var(--blue-dim);">💬</div>
+        <h4>WhatsApp Service Channel</h4>
+        <p>Customers can initiate service booking via WhatsApp. Admin can push service status, public URL, and updates via WhatsApp API. Seamless fallback for non-app users.</p>
+        <span class="tech-tag" style="background:var(--blue-dim);border:1px solid rgba(59,130,246,0.2);color:var(--blue);">WhatsApp Business API · Webhook</span>
+      </div>
+      <div class="glass tech-card fade-up" data-n="05">
+        <div class="tech-icon" style="background:var(--orange-dim);">📦</div>
+        <h4>5-Level Product Hierarchy</h4>
+        <p>Category → Brand → Model → Fuel Type → Product. Each level is independently CRUD-managed in admin. Product discovery on the customer side drills down through all 5 levels.</p>
+        <span class="tech-tag" style="background:var(--orange-dim);border:1px solid rgba(249,115,22,0.2);color:var(--orange);">NestJS Tree Entity · MongoDB Refs</span>
+      </div>
+      <div class="glass tech-card fade-up" data-n="06">
+        <div class="tech-icon" style="background:var(--amber-dim);">🏭</div>
+        <h4>Warehouse → Hub Architecture</h4>
+        <p>Warehouses contain multiple hubs. Service requests and product deliveries are dispatched from the nearest hub. Hub panel users manage their own queue independently.</p>
+        <span class="tech-tag" style="background:var(--amber-dim);border:1px solid rgba(245,158,11,0.2);color:var(--amber);">Geospatial Queries · Hub Assignment</span>
+      </div>
+      <div class="glass tech-card fade-up" data-n="07">
+        <div class="tech-icon" style="background:var(--green-dim);">🔔</div>
+        <h4>Multi-Audience Notifications</h4>
+        <p>Admin creates push notifications with audience targeting (all, specific segment) and scheduling. Bull queue delivers via Firebase FCM with retry logic. Notification page with unread filter on customer side.</p>
+        <span class="tech-tag" style="background:var(--green-dim);border:1px solid rgba(34,197,94,0.2);color:var(--green);">Firebase FCM · Bull · Scheduled Push</span>
+      </div>
+      <div class="glass tech-card fade-up" data-n="08">
+        <div class="tech-icon" style="background:var(--blue-dim);">📱</div>
+        <h4>Mobile OTP Auth</h4>
+        <p>Mobile-number OTP authentication for customer app and hub panel. Device session management, token rotation, and hub-level role system (manager, assistant, technician, field technician).</p>
+        <span class="tech-tag" style="background:var(--blue-dim);border:1px solid rgba(59,130,246,0.2);color:var(--blue);">SMS OTP · JWT · Role Guards</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule"></div>
+
+<!-- ================================================
+     ARCHITECTURE
+     ================================================ -->
+<section id="architecture">
+  <div class="orb" style="background:var(--orange);width:400px;height:400px;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.06;"></div>
+  <div class="container">
+    <div class="arch-header fade-up">
+      <div class="section-tag">System Architecture</div>
+      <h2>Three Clients. <span class="grad-text">One Unified Backend.</span></h2>
+    </div>
+
+    <div class="arch-flow fade-up">
+      <div class="arch-n"><div class="arch-box" style="background:var(--orange-dim);border-color:rgba(249,115,22,0.25);">🌐</div><div class="arch-lbl">Customer<br>Website</div></div>
+      <div class="arch-arr"><svg viewBox="0 0 30 11" fill="none"><defs><linearGradient id="aa1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#f97316"/><stop offset="100%" stop-color="#f59e0b"/></linearGradient></defs><path d="M0 5.5L22 5.5M18 2.5l5 3-5 3" stroke="url(#aa1)" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+      <div class="arch-n"><div class="arch-box" style="background:var(--orange-dim);border-color:rgba(249,115,22,0.2);">📱</div><div class="arch-lbl">Mobile<br>App</div></div>
+      <div class="arch-arr"><svg viewBox="0 0 30 11" fill="none"><defs><linearGradient id="aa2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#22c55e"/></linearGradient></defs><path d="M0 5.5L22 5.5M18 2.5l5 3-5 3" stroke="url(#aa2)" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+      <div class="arch-n"><div class="arch-box" style="background:var(--amber-dim);border-color:rgba(245,158,11,0.25);">⚙️</div><div class="arch-lbl">Admin<br>Panel</div></div>
+      <div class="arch-arr"><svg viewBox="0 0 30 11" fill="none"><defs><linearGradient id="aa3" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22c55e"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path d="M0 5.5L22 5.5M18 2.5l5 3-5 3" stroke="url(#aa3)" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+      <div class="arch-n"><div class="arch-box" style="background:var(--green-dim);border-color:rgba(34,197,94,0.25);">🏪</div><div class="arch-lbl">Hub<br>Panel</div></div>
+      <div class="arch-arr"><svg viewBox="0 0 30 11" fill="none"><defs><linearGradient id="aa4" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#f97316"/></linearGradient></defs><path d="M0 5.5L22 5.5M18 2.5l5 3-5 3" stroke="url(#aa4)" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+      <div class="arch-n"><div class="arch-box" style="background:var(--blue-dim);border-color:rgba(59,130,246,0.25);">🔀</div><div class="arch-lbl">API Gateway<br>Auth · RBAC</div></div>
+      <div class="arch-arr"><svg viewBox="0 0 30 11" fill="none"><defs><linearGradient id="aa5" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#f97316"/><stop offset="100%" stop-color="#22c55e"/></linearGradient></defs><path d="M0 5.5L22 5.5M18 2.5l5 3-5 3" stroke="url(#aa5)" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+      <div class="arch-n"><div class="arch-box" style="background:var(--orange-dim);border-color:rgba(249,115,22,0.25);">⚡</div><div class="arch-lbl">NestJS<br>Backend</div></div>
+      <div class="arch-arr"><svg viewBox="0 0 30 11" fill="none"><defs><linearGradient id="aa6" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22c55e"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path d="M0 5.5L22 5.5M18 2.5l5 3-5 3" stroke="url(#aa6)" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+      <div class="arch-n"><div class="arch-box" style="background:var(--blue-dim);border-color:rgba(59,130,246,0.25);">🗄️</div><div class="arch-lbl">MongoDB +<br>PostgreSQL</div></div>
+    </div>
+
+    <div class="arch-subgrid fade-up">
+      <div class="glass arch-sub ao">
+        <h4 style="color:var(--orange);">Service Request Flow</h4>
+        <ul>
+          <li>Customer or admin creates booking</li>
+          <li>Admin assigns to nearest hub</li>
+          <li>Hub accepts and assigns technician</li>
+          <li>Public URL generated for tracking</li>
+          <li>Status updates via FCM push</li>
+          <li>Report + images uploaded on completion</li>
+        </ul>
+      </div>
+      <div class="glass arch-sub aa">
+        <h4 style="color:var(--amber);">Product Order Flow</h4>
+        <ul>
+          <li>Customer drills Category→Product</li>
+          <li>Pincode availability check</li>
+          <li>Cart → address → payment</li>
+          <li>Order dispatched from nearest hub</li>
+          <li>Delivery assigned to hub staff</li>
+          <li>Product return process supported</li>
+        </ul>
+      </div>
+      <div class="glass arch-sub ag">
+        <h4 style="color:var(--green);">Subscription Flow</h4>
+        <ul>
+          <li>Admin defines dynamic category schema</li>
+          <li>Customer purchases package</li>
+          <li>Usage tracked per subscription</li>
+          <li>Availing deducts usage count</li>
+          <li>Renewal flow with expiry alerts</li>
+          <li>Admin monitors all subscriptions</li>
+        </ul>
+      </div>
+      <div class="glass arch-sub ab">
+        <h4 style="color:var(--blue);">Notification Pipeline</h4>
+        <ul>
+          <li>Admin schedules targeted push</li>
+          <li>Bull queue picks up at scheduled time</li>
+          <li>Firebase FCM dispatches to devices</li>
+          <li>Retry logic on FCM failure</li>
+          <li>Customer sees unread badge on app</li>
+          <li>Mark all as read with timestamp</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule"></div>
+
+<!-- ================================================
+     PERFORMANCE
+     ================================================ -->
+<section id="performance">
+  <div class="container">
+    <div class="perf-header fade-up">
+      <div class="section-tag">Scale &amp; Performance</div>
+      <h2>Built to Handle <span class="grad-text">India's Roads at Scale.</span></h2>
+      <p>Every metric reflects deliberate architecture choices — not accidental performance.</p>
+    </div>
+    <div class="perf-grid">
+      <div class="glass perf-card pc-o fade-up">
+        <div class="perf-n">3</div>
+        <div class="perf-m">Panels, One Backend</div>
+        <div class="perf-d">Customer website, admin panel, and hub panel all share a single NestJS API with role-based module access — no code duplication, one deployment pipeline.</div>
+        <div class="perf-bar"><div class="perf-bar-f"></div></div>
+      </div>
+      <div class="glass perf-card pc-a fade-up">
+        <div class="perf-n">27+</div>
+        <div class="perf-m">Production Modules</div>
+        <div class="perf-d">11 website modules, 13 admin modules, and hub panel operations — all independently built, tested, and integrated with a shared data model.</div>
+        <div class="perf-bar"><div class="perf-bar-f"></div></div>
+      </div>
+      <div class="glass perf-card pc-g fade-up">
+        <div class="perf-n">5</div>
+        <div class="perf-m">Product Hierarchy Levels</div>
+        <div class="perf-d">Category → Brand → Model → Fuel Type → Product. Each level independently managed in admin and traversed in O(1) indexed reads on the customer catalogue.</div>
+        <div class="perf-bar"><div class="perf-bar-f"></div></div>
+      </div>
+    </div>
+    <div class="perf-row2 fade-up">
+      <div class="glass perf-card pc-a" style="text-align:center;padding:26px;">
+        <div class="perf-n" style="font-size:2.8rem;">COD+</div>
+        <div class="perf-m">Payment Options</div>
+        <div class="perf-d">Cash on delivery and online payment supported for both product orders and service bookings. Payment summary with GST breakdown on every checkout.</div>
+        <div class="perf-bar"><div class="perf-bar-f"></div></div>
+      </div>
+      <div class="glass perf-card pc-o" style="text-align:center;padding:26px;">
+        <div class="perf-n" style="font-size:2.8rem;">Real-time</div>
+        <div class="perf-m">Live Tracking (App)</div>
+        <div class="perf-d">Technician live tracking on the customer mobile app. Hub panel technician broadcasts location during active service. Public URL shows static status for web users.</div>
+        <div class="perf-bar"><div class="perf-bar-f"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule"></div>
+
+<!-- ================================================
+     CHALLENGES
+     ================================================ -->
+<section id="challenges">
+  <div class="container">
+    <div class="ch-header fade-up">
+      <div class="section-tag">Engineering Decisions</div>
+      <h2>Real Problems. <span class="grad-text">Engineered Solutions.</span></h2>
+    </div>
+    <div class="ch-grid">
+      <div class="glass ch-card fade-up">
+        <div class="ch-id">// CHALLENGE 01</div>
+        <h4>Dynamic Subscription Fields</h4>
+        <div class="ch-prob"><span class="ch-tag" style="color:#f87171;">⚠ Problem</span>Car, Bike, UPS, and Solar subscriptions all have completely different benefit structures. Hardcoding fields for each type would make the system unmaintainable.</div>
+        <div class="ch-sol"><span class="ch-tag" style="color:#4ade80;">✓ Solution</span>Admin defines a field schema per category (type: number/dropdown/yes-no/percentage/time). Each subscription inherits the schema and stores values against dynamic keys in MongoDB. Zero hardcoded fields.</div>
+      </div>
+      <div class="glass ch-card fade-up">
+        <div class="ch-id">// CHALLENGE 02</div>
+        <h4>Towing Distance Pricing</h4>
+        <div class="ch-prob"><span class="ch-tag" style="color:#f87171;">⚠ Problem</span>Towing pricing depends on real distance between pickup and drop location. Showing the correct price before payment required accurate KM calculation without a paid routing API call per user.</div>
+        <div class="ch-sol"><span class="ch-tag" style="color:#4ade80;">✓ Solution</span>Google Maps Distance Matrix API called on drop location confirmation. Result cached per (origin, destination) pair. Vehicle-type multipliers applied server-side. Price displayed with GST before payment.</div>
+      </div>
+      <div class="glass ch-card fade-up">
+        <div class="ch-id">// CHALLENGE 03</div>
+        <h4>Admin Booking on Behalf of User</h4>
+        <div class="ch-prob"><span class="ch-tag" style="color:#f87171;">⚠ Problem</span>When a customer calls support, the admin must create a service booking on their behalf and instantly share status access — without the customer needing a login.</div>
+        <div class="ch-sol"><span class="ch-tag" style="color:#4ade80;">✓ Solution</span>Admin booking flow mirrors the customer flow but with a customer selector. On save, a signed JWT-based public URL is generated. Admin shares via WhatsApp. Anyone with the URL can view service status without auth.</div>
+      </div>
+      <div class="glass ch-card fade-up">
+        <div class="ch-id">// CHALLENGE 04</div>
+        <h4>Multi-Panel Role Architecture</h4>
+        <div class="ch-prob"><span class="ch-tag" style="color:#f87171;">⚠ Problem</span>Three different panels (customer, admin, hub) with different roles (owner, admin, hub manager, technician, delivery) all hitting the same NestJS backend required careful guard design.</div>
+        <div class="ch-sol"><span class="ch-tag" style="color:#4ade80;">✓ Solution</span>JWT payload includes panel type + role. NestJS guards check panel context first, then role permissions. Module-level guards protect entire controller groups. Hub staff access scoped to their assigned hub's data only.</div>
+      </div>
+      <div class="glass ch-card fade-up">
+        <div class="ch-id">// CHALLENGE 05</div>
+        <h4>SEO + Content CMS</h4>
+        <div class="ch-prob"><span class="ch-tag" style="color:#f87171;">⚠ Problem</span>Every public-facing page needs independently manageable meta titles, descriptions, and OG tags. Hardcoding these meant a deployment for every copy change.</div>
+        <div class="ch-sol"><span class="ch-tag" style="color:#4ade80;">✓ Solution</span>Admin can update SEO data per page slug via a simple form. Next.js fetches the meta record at build-time for static pages and at request-time for dynamic pages. Content changes deploy in seconds, no code touch.</div>
+      </div>
+      <div class="glass ch-card fade-up">
+        <div class="ch-id">// CHALLENGE 06</div>
+        <h4>Warehouse → Hub → Assignment Chain</h4>
+        <div class="ch-prob"><span class="ch-tag" style="color:#f87171;">⚠ Problem</span>Service requests need to be dispatched from the closest hub. Hub staff should only see their own hub's queue, not all requests.</div>
+        <div class="ch-sol"><span class="ch-tag" style="color:#4ade80;">✓ Solution</span>Service request record stores assigned warehouse and hub IDs. Hub panel queries filter by hubId from the authenticated user's profile. Admin assigns the hub on service creation; hub staff accept/reject from their own queue.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule"></div>
+
+<!-- ================================================
+     STANDOUT
+     ================================================ -->
+<section id="standout">
+  <div class="container">
+    <div class="stand-header fade-up">
+      <div class="section-tag">Why This Project Stands Out</div>
+      <h2>Enterprise Depth. <span class="grad-text">Startup Speed.</span></h2>
+    </div>
+    <div class="stand-layout">
+      <div class="stand-main fade-up">
+        <h3>Not a MVP. A Complete Operating System.</h3>
+        <p>Erina Assistance is not a simple "service booking app." It's a full B2C platform with an e-commerce catalogue, three distinct user panels, a warehouse/hub logistics system, dynamic subscription infrastructure, and a WhatsApp-integrated service channel — all built from scratch with one engineering team.</p>
+        <div class="stand-pts">
+          <div class="stand-pt">
+            <div class="spt-bullet"></div>
+            <p><strong>27+ modules, three panels.</strong> Customer website, admin panel, and hub panel — each a complete product, sharing one NestJS backend with role-scoped access control.</p>
+          </div>
+          <div class="stand-pt">
+            <div class="spt-bullet" style="background:var(--amber);box-shadow:0 0 8px var(--amber);"></div>
+            <p><strong>Dynamic subscription schema.</strong> The subscription system is fully configurable at runtime — no hardcoded fields. Admin defines benefit schemas per category; subscriptions inherit and populate them.</p>
+          </div>
+          <div class="stand-pt">
+            <div class="spt-bullet" style="background:var(--green);box-shadow:0 0 8px var(--green);"></div>
+            <p><strong>Real logistics infrastructure.</strong> Warehouse → Hub → Technician/Delivery assignment chain. Service requests dispatched from the nearest hub, with each hub operating as an independent queue.</p>
+          </div>
+          <div class="stand-pt">
+            <div class="spt-bullet" style="background:var(--blue);box-shadow:0 0 8px var(--blue);"></div>
+            <p><strong>WhatsApp + public URL service sharing.</strong> Admin creates services on behalf of customers and shares a public tracking URL via WhatsApp. No login required for the end recipient.</p>
+          </div>
+        </div>
+      </div>
+      <div class="stand-side fade-up">
+        <div class="glass stand-metric">
+          <div class="sm-v grad-text">Full Stack</div>
+          <div class="sm-l">Website · App · Admin · Hub Panel · APIs</div>
+        </div>
+        <div class="glass stand-metric">
+          <div class="sm-v" style="color:var(--orange);">27+</div>
+          <div class="sm-l">Production Modules across three panels</div>
+        </div>
+        <div class="glass stand-metric">
+          <div class="sm-v" style="color:var(--amber);">0 → 1</div>
+          <div class="sm-l">Complete platform built from scratch</div>
+        </div>
+        <div class="glass stand-metric">
+          <div class="sm-v" style="color:var(--green);">5yr+</div>
+          <div class="sm-l">MERN Production Engineering Experience</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule"></div>
+
+<!-- ================================================
+     CTA
+     ================================================ -->
+<section id="cta">
+  <div class="orb" style="background:var(--orange);width:600px;height:600px;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.1;"></div>
+  <div class="orb" style="background:var(--amber);width:300px;height:300px;top:20%;right:5%;opacity:0.08;"></div>
+  <div class="container" style="position:relative;z-index:2;">
+    <div class="cta-box">
+      <div class="cta-eye">
+        <span class="cta-line"></span>
+        Available for New Projects
+        <span class="cta-line"></span>
+      </div>
+      <h2>Need a Platform <span class="grad-text">This Complete?</span></h2>
+      <p>If you're building a service marketplace, on-demand platform, e-commerce ecosystem, or any multi-panel full-stack product — I architect and build end-to-end, from database schema to the last pixel of the admin panel.</p>
+      <div class="cta-btns">
+        <a href="mailto:hello@example.com" class="btn-cta-p">
+          Start a Project →
+        </a>
+        <a href="#" class="btn-cta-s">
+          View Portfolio
+        </a>
+      </div>
+      <div class="cta-trust">
+        <span class="cta-trust-i">Production-ready code</span>
+        <span class="cta-trust-i">Multi-panel architecture</span>
+        <span class="cta-trust-i">Google Maps integration</span>
+        <span class="cta-trust-i">On-time delivery</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-inner">
+    <div class="foot-logo">
+      <div class="foot-logo-dot"></div>
+      Erina Assistance — Engineering Case Study
+    </div>
+    <div class="foot-note">MERN · NESTJS · REACT NATIVE · GOOGLE MAPS · INDIA</div>
+    <div class="foot-badge">Available for Hire</div>
+  </div>
+</footer>
+
+<script>
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);} });
+}, { threshold: 0.05 });
+document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
+
+window.addEventListener('scroll', () => {
+  document.getElementById('main-nav').classList.toggle('scrolled', window.scrollY > 10);
+}, { passive: true });
+
+// Counter
+const statEls = document.querySelectorAll('.hst-n,.ss-n');
+const co = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(!e.isIntersecting) return;
+    const el = e.target;
+    const raw = el.textContent;
+    const m = raw.match(/\d+(\.\d+)?/);
+    if(!m) return;
+    const target = parseFloat(m[0]);
+    const prefix = raw.split(m[0])[0];
+    const suffix = raw.replace(prefix,'').replace(m[0],'');
+    const dur = 1400;
+    const t0 = performance.now();
+    function tick(t){
+      const p = Math.min((t-t0)/dur,1);
+      const ease = 1-Math.pow(1-p,3);
+      const val = m[0].includes('.') ? (target*ease).toFixed(1) : Math.floor(target*ease);
+      el.textContent = prefix + val + suffix;
+      if(p<1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+    co.unobserve(el);
+  });
+}, { threshold: 0.5 });
+statEls.forEach(el => co.observe(el));
+</script>
+</body>
+</html>
