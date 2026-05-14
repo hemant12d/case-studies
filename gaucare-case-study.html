@@ -1,0 +1,2040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gau Care — Case Study | Senior MERN Engineer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600;1,800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ================================================
+   DESIGN TOKENS — BLACK & WHITE EDITORIAL
+   ================================================ */
+:root {
+  --ink:        #0a0a0a;
+  --ink-90:     #111111;
+  --ink-80:     #1a1a1a;
+  --ink-60:     #2e2e2e;
+  --ink-40:     #4a4a4a;
+  --ink-20:     #888888;
+  --ink-10:     #b0b0b0;
+  --paper:      #f5f3ef;
+  --paper-dim:  #ece9e3;
+  --paper-dark: #e0dcd4;
+  --white:      #ffffff;
+  --rule:       rgba(10,10,10,0.1);
+  --rule-strong:rgba(10,10,10,0.18);
+
+  --accent:     #0a0a0a;
+  --accent-inv: #f5f3ef;
+
+  --f-serif:  'Playfair Display', Georgia, serif;
+  --f-sans:   'DM Sans', system-ui, sans-serif;
+  --f-mono:   'JetBrains Mono', monospace;
+
+  --r-sm: 6px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-xl: 26px;
+
+  --sh-card: 0 2px 20px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+  --sh-lift: 0 8px 40px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* ================================================
+   RESET & BASE
+   ================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;font-size:16px;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--f-sans);
+  font-weight:400;
+  line-height:1.65;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+/* Paper grain */
+body::before{
+  content:'';
+  position:fixed;inset:0;pointer-events:none;z-index:9999;
+  opacity:0.3;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.06'/%3E%3C/svg%3E");
+}
+a{text-decoration:none;color:inherit;}
+ul{list-style:none;}
+h1,h2,h3,h4{font-family:var(--f-serif);line-height:1.1;}
+strong{font-weight:600;}
+
+.container{max-width:1160px;margin:0 auto;padding:0 28px;}
+section{padding:100px 0;position:relative;}
+.sec-rule{width:100%;height:1px;background:var(--rule-strong);}
+
+/* ================================================
+   TYPOGRAPHY UTILITIES
+   ================================================ */
+.section-tag{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--f-mono);font-size:0.65rem;font-weight:500;
+  letter-spacing:0.18em;text-transform:uppercase;color:var(--ink-40);
+  margin-bottom:20px;
+}
+.section-tag::before{content:'';width:22px;height:1px;background:var(--ink-40);}
+
+.italic-display{font-family:var(--f-serif);font-style:italic;color:var(--ink-40);}
+
+/* ================================================
+   NAV
+   ================================================ */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  background:rgba(245,243,239,0.88);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--rule-strong);
+  transition:box-shadow 0.3s;
+}
+nav.scrolled{box-shadow:0 2px 20px rgba(0,0,0,0.07);}
+.nav-inner{
+  max-width:1160px;margin:0 auto;padding:0 28px;
+  height:64px;display:flex;align-items:center;justify-content:space-between;gap:24px;
+}
+.nav-logo{display:flex;align-items:center;gap:10px;}
+.nav-logo-mark{
+  width:32px;height:32px;background:var(--ink);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+}
+.nav-logo-mark svg{width:18px;height:18px;}
+.nav-logo-text{
+  font-family:var(--f-serif);font-size:1.05rem;font-weight:700;
+  letter-spacing:-0.01em;color:var(--ink);
+}
+.nav-chip{
+  font-family:var(--f-mono);font-size:0.6rem;letter-spacing:0.1em;
+  padding:4px 12px;border-radius:100px;
+  border:1px solid var(--rule-strong);color:var(--ink-40);
+  background:var(--paper);
+}
+.nav-cta{
+  background:var(--ink);color:var(--paper);
+  font-family:var(--f-sans);font-weight:600;font-size:0.82rem;
+  padding:9px 22px;border-radius:100px;
+  transition:background 0.2s,transform 0.15s;letter-spacing:0.01em;
+}
+.nav-cta:hover{background:var(--ink-60);transform:translateY(-1px);}
+
+/* ================================================
+   HERO
+   ================================================ */
+#hero{
+  min-height:100vh;display:flex;align-items:center;
+  padding:130px 0 80px;background:var(--ink);
+  overflow:hidden;
+}
+
+/* Halftone texture on hero */
+#hero::after{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle,rgba(245,243,239,0.06) 1px,transparent 1px);
+  background-size:28px 28px;pointer-events:none;
+}
+
+.hero-layout{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:80px;align-items:center;
+  position:relative;z-index:2;
+}
+
+/* Hero left */
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:10px;
+  background:rgba(245,243,239,0.06);
+  border:1px solid rgba(245,243,239,0.12);
+  border-radius:100px;padding:7px 18px;margin-bottom:30px;
+}
+.h-eye-dot{
+  width:7px;height:7px;background:var(--paper);
+  border-radius:50%;opacity:0.7;
+  animation:hpulse 2.5s ease-in-out infinite;
+}
+@keyframes hpulse{0%,100%{opacity:0.7;}50%{opacity:0.2;}}
+.hero-eyebrow span{
+  font-family:var(--f-mono);font-size:0.65rem;color:rgba(245,243,239,0.6);
+  letter-spacing:0.12em;text-transform:uppercase;
+}
+
+.hero-h1{
+  font-family:var(--f-serif);
+  font-size:clamp(3rem,6vw,5.4rem);
+  font-weight:900;letter-spacing:-0.04em;
+  color:var(--paper);line-height:1.0;margin-bottom:8px;
+}
+.hero-h1 .h1-italic{font-style:italic;color:rgba(245,243,239,0.55);font-weight:400;}
+.hero-h1-eng{
+  font-family:var(--f-sans);font-size:clamp(0.9rem,1.5vw,1.1rem);
+  font-weight:300;color:rgba(245,243,239,0.45);
+  letter-spacing:0.02em;margin-bottom:30px;
+}
+.hero-rule{width:48px;height:1px;background:rgba(245,243,239,0.3);margin-bottom:28px;}
+.hero-desc{
+  font-size:1.0rem;color:rgba(245,243,239,0.6);
+  line-height:1.8;font-weight:300;max-width:460px;margin-bottom:42px;
+}
+.hero-desc strong{color:rgba(245,243,239,0.9);font-weight:500;}
+
+/* Hero badge row */
+.hero-badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:46px;}
+.hbdg{
+  font-family:var(--f-mono);font-size:0.6rem;font-weight:500;
+  padding:5px 12px;border-radius:6px;border:1px solid;letter-spacing:0.06em;
+  transition:transform 0.2s;cursor:default;
+}
+.hbdg:hover{transform:translateY(-2px);}
+.hbdg-w{border-color:rgba(245,243,239,0.2);color:rgba(245,243,239,0.7);background:rgba(245,243,239,0.04);}
+.hbdg-d{border-color:rgba(245,243,239,0.1);color:rgba(245,243,239,0.4);background:rgba(245,243,239,0.02);}
+
+/* Hero stats */
+.hero-stats-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  border:1px solid rgba(245,243,239,0.1);border-radius:var(--r-lg);overflow:hidden;
+  gap:1px;background:rgba(245,243,239,0.06);
+}
+.hsg-item{
+  background:var(--ink-90);padding:22px 16px;
+  transition:background 0.25s;cursor:default;
+}
+.hsg-item:hover{background:rgba(245,243,239,0.04);}
+.hsg-n{
+  font-family:var(--f-serif);font-size:1.8rem;font-weight:800;
+  line-height:1;margin-bottom:5px;color:var(--paper);letter-spacing:-0.04em;
+}
+.hsg-l{font-size:0.65rem;color:rgba(245,243,239,0.35);font-weight:400;letter-spacing:0.03em;}
+
+/* Hero right — App mockup */
+.hero-app{
+  position:relative;
+  animation:app-float 7s ease-in-out infinite;
+}
+@keyframes app-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+
+.app-phone{
+  width:280px;
+  background:var(--ink-80);
+  border:1px solid rgba(245,243,239,0.1);
+  border-radius:38px;
+  overflow:hidden;
+  box-shadow:0 0 0 1px rgba(245,243,239,0.05),0 40px 100px rgba(0,0,0,0.7);
+  margin:0 auto;position:relative;z-index:2;
+}
+
+/* Phone notch */
+.ph-notch{
+  height:30px;background:var(--ink-80);
+  display:flex;align-items:center;justify-content:center;
+}
+.ph-notch-pill{
+  width:85px;height:20px;background:#0d0d0d;
+  border-radius:12px;display:flex;align-items:center;justify-content:center;gap:5px;
+}
+.ph-cam{width:7px;height:7px;background:#1a1a1a;border-radius:50%;border:1.5px solid #252525;}
+.ph-sens{width:16px;height:4px;background:#1a1a1a;border-radius:3px;}
+
+/* Phone UI */
+.ph-screen{background:#111111;min-height:520px;display:flex;flex-direction:column;}
+.ph-status{padding:4px 16px;display:flex;align-items:center;justify-content:space-between;}
+.ph-time{font-family:var(--f-mono);font-size:0.58rem;font-weight:600;color:rgba(245,243,239,0.7);}
+.ph-icons{display:flex;gap:3px;align-items:center;}
+.phi{height:5px;background:rgba(245,243,239,0.6);border-radius:1px;}
+.phi.s{width:3px;}.phi.m{width:4px;}.phi.l{width:5px;}
+.phi.bat{width:13px;height:5.5px;border:1.5px solid rgba(245,243,239,0.5);border-radius:1.5px;background:transparent;position:relative;}
+.phi.bat::before{content:'';position:absolute;inset:1px 1px;background:rgba(245,243,239,0.7);border-radius:0.5px;}
+.phi.bat::after{content:'';position:absolute;right:-4px;top:50%;transform:translateY(-50%);width:2px;height:3.5px;background:rgba(245,243,239,0.5);border-radius:0 1px 1px 0;}
+
+/* App header */
+.ph-app-header{
+  padding:8px 14px 6px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.ph-app-logo{
+  display:flex;align-items:center;gap:7px;
+}
+.ph-logo-icon{
+  width:26px;height:26px;background:var(--paper);border-radius:7px;
+  display:flex;align-items:center;justify-content:center;font-size:0.7rem;
+}
+.ph-app-name{font-family:var(--f-serif);font-size:0.85rem;font-weight:700;color:var(--paper);}
+.ph-notif-btn{
+  width:26px;height:26px;background:rgba(245,243,239,0.07);
+  border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;
+}
+
+/* Greeting */
+.ph-greeting{padding:6px 14px;}
+.ph-greet-text{font-size:0.7rem;color:rgba(245,243,239,0.45);}
+.ph-greet-name{font-family:var(--f-serif);font-size:1.0rem;font-weight:700;color:var(--paper);}
+
+/* Today action card */
+.ph-action-card{
+  margin:8px 12px;padding:12px 14px;
+  background:var(--paper);border-radius:14px;
+}
+.ph-action-label{font-size:0.55rem;font-weight:600;color:var(--ink-40);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;}
+.ph-action-text{font-size:0.78rem;font-weight:600;color:var(--ink);line-height:1.4;}
+.ph-action-sub{font-size:0.62rem;color:var(--ink-40);margin-top:3px;}
+.ph-action-cta{
+  display:inline-flex;align-items:center;gap:4px;
+  margin-top:8px;background:var(--ink);color:var(--paper);
+  font-size:0.6rem;font-weight:600;padding:5px 12px;border-radius:100px;letter-spacing:0.04em;
+}
+
+/* Quick stats */
+.ph-quick-stats{
+  display:grid;grid-template-columns:1fr 1fr;gap:6px;
+  padding:0 12px;margin-top:8px;
+}
+.ph-qs{
+  background:rgba(245,243,239,0.05);border-radius:10px;
+  border:1px solid rgba(245,243,239,0.08);padding:10px 11px;
+}
+.ph-qs-label{font-size:0.52rem;color:rgba(245,243,239,0.4);font-weight:500;margin-bottom:3px;}
+.ph-qs-val{font-family:var(--f-serif);font-size:1.1rem;font-weight:700;color:var(--paper);line-height:1;}
+.ph-qs-sub{font-size:0.5rem;color:rgba(245,243,239,0.35);margin-top:2px;}
+.ph-qs-change{
+  display:inline-flex;align-items:center;gap:2px;
+  font-size:0.52rem;font-weight:600;
+  margin-top:3px;color:var(--paper);
+  background:rgba(245,243,239,0.1);border-radius:4px;padding:1px 5px;
+}
+
+/* Cattle list */
+.ph-cattle-section{padding:8px 12px 0;}
+.ph-sec-header{
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;
+}
+.ph-sec-title{font-size:0.62rem;font-weight:600;color:rgba(245,243,239,0.6);letter-spacing:0.06em;text-transform:uppercase;}
+.ph-sec-link{font-size:0.58rem;color:rgba(245,243,239,0.35);}
+.ph-cow-row{
+  display:flex;align-items:center;gap:9px;padding:8px 10px;
+  background:rgba(245,243,239,0.03);border-radius:9px;
+  border:1px solid rgba(245,243,239,0.06);margin-bottom:5px;
+  transition:background 0.15s;
+}
+.ph-cow-row:hover{background:rgba(245,243,239,0.06);}
+.ph-cow-av{
+  width:28px;height:28px;border-radius:8px;
+  background:rgba(245,243,239,0.1);
+  display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;
+}
+.ph-cow-name{font-size:0.72rem;font-weight:600;color:rgba(245,243,239,0.85);}
+.ph-cow-meta{font-size:0.58rem;color:rgba(245,243,239,0.35);}
+.ph-cow-stat{margin-left:auto;text-align:right;}
+.ph-cow-milk{font-family:var(--f-serif);font-size:0.88rem;font-weight:700;color:var(--paper);line-height:1;}
+.ph-cow-mlabel{font-size:0.5rem;color:rgba(245,243,239,0.3);}
+.ph-cow-tag{
+  font-size:0.5rem;font-weight:700;padding:2px 6px;border-radius:4px;letter-spacing:0.04em;
+}
+.ct-heat{background:rgba(245,245,245,0.12);color:rgba(245,243,239,0.7);}
+.ct-preg{background:rgba(245,245,245,0.07);color:rgba(245,243,239,0.45);}
+
+/* WhatsApp widget */
+.ph-wa{
+  margin:8px 12px;padding:10px 12px;
+  background:rgba(37,211,102,0.07);
+  border:1px solid rgba(37,211,102,0.15);border-radius:10px;
+}
+.ph-wa-header{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
+.ph-wa-icon{width:16px;height:16px;background:#25D366;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.5rem;}
+.ph-wa-label{font-size:0.58rem;font-weight:700;color:#4ade80;letter-spacing:0.06em;text-transform:uppercase;}
+.ph-wa-msg{font-size:0.65rem;color:rgba(245,243,239,0.65);font-style:italic;line-height:1.5;border-left:2px solid rgba(37,211,102,0.3);padding-left:7px;}
+
+/* Tab bar */
+.ph-tabs{
+  margin-top:auto;padding:8px 12px;
+  display:flex;justify-content:space-around;
+  border-top:1px solid rgba(245,243,239,0.06);background:#0d0d0d;
+}
+.ph-tab{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;}
+.ph-tab-icon{font-size:0.9rem;opacity:0.35;}
+.ph-tab-icon.active{opacity:0.9;}
+.ph-tab-label{font-size:0.46rem;color:rgba(245,243,239,0.3);font-weight:500;}
+.ph-tab-label.active{color:rgba(245,243,239,0.7);}
+
+/* Floating cards */
+.fc{
+  position:absolute;z-index:4;
+  background:var(--white);border-radius:var(--r-md);
+  box-shadow:var(--sh-lift);
+  border:1px solid rgba(0,0,0,0.06);padding:14px 16px;cursor:default;
+  transition:transform 0.25s;
+}
+.fc:hover{transform:scale(1.03);}
+.fc-alert-card{right:-80px;top:60px;width:190px;animation:fc-float-r 8s ease-in-out infinite;}
+@keyframes fc-float-r{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
+.fc-alert-card:hover{transform:scale(1.03) translateY(-2px);}
+.fc-income{left:-80px;bottom:100px;width:170px;animation:fc-float-l 7s ease-in-out 1s infinite;}
+@keyframes fc-float-l{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.fc-income:hover{transform:scale(1.03) translateY(-2px);}
+.fc-wa-card{left:-70px;top:70px;width:195px;animation:fc-float-l2 9s ease-in-out 0.5s infinite;}
+@keyframes fc-float-l2{0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);}}
+
+.fc-label{font-size:0.55rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-20);margin-bottom:6px;}
+.fc-title{font-size:0.82rem;font-weight:700;color:var(--ink);margin-bottom:3px;line-height:1.3;}
+.fc-sub{font-size:0.68rem;color:var(--ink-40);font-weight:400;line-height:1.5;}
+.fc-val{font-family:var(--f-serif);font-size:1.6rem;font-weight:800;color:var(--ink);letter-spacing:-0.04em;line-height:1;}
+.fc-change{display:flex;align-items:center;gap:4px;margin-top:4px;}
+.fc-pill{font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:5px;background:#f0f0f0;color:var(--ink-40);}
+.fc-pill.up{background:#e8f5e9;color:#2e7d32;}
+.fc-divider{width:100%;height:1px;background:var(--rule);margin:8px 0;}
+.fc-wa-msg-text{font-size:0.72rem;color:var(--ink-60);font-style:italic;line-height:1.5;border-left:2px solid #25D366;padding-left:8px;margin-bottom:5px;}
+.fc-wa-reply{font-size:0.68rem;color:var(--ink-40);line-height:1.5;border-left:2px solid var(--rule-strong);padding-left:8px;}
+
+/* ================================================
+   OVERVIEW / PROBLEM — LIGHT SECTIONS
+   ================================================ */
+#overview{background:var(--paper);}
+.overview-layout{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:start;}
+.ov-left h2{font-size:clamp(1.8rem,3.5vw,2.8rem);margin-bottom:20px;letter-spacing:-0.03em;}
+.ov-left p{color:var(--ink-40);font-weight:300;line-height:1.8;margin-bottom:16px;font-size:0.97rem;}
+.ov-right{display:flex;flex-direction:column;gap:1px;border:1px solid var(--rule-strong);border-radius:var(--r-lg);overflow:hidden;}
+.ov-stat-row{
+  padding:22px 24px;
+  background:var(--white);
+  display:flex;align-items:center;gap:18px;
+  transition:background 0.2s;cursor:default;
+  border-bottom:1px solid var(--rule);
+}
+.ov-stat-row:last-child{border-bottom:none;}
+.ov-stat-row:hover{background:var(--paper);}
+.ov-stat-icon{
+  width:40px;height:40px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;flex-shrink:0;background:var(--paper);
+}
+.ov-stat-num{font-family:var(--f-serif);font-size:1.5rem;font-weight:800;color:var(--ink);letter-spacing:-0.04em;line-height:1;}
+.ov-stat-label{font-size:0.72rem;color:var(--ink-40);font-weight:400;margin-top:2px;}
+
+/* Vision block */
+.vision-block{
+  margin-top:40px;padding:32px 32px;
+  background:var(--ink);border-radius:var(--r-xl);
+  position:relative;overflow:hidden;
+}
+.vision-block::before{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle,rgba(245,243,239,0.04) 1px,transparent 1px);
+  background-size:22px 22px;
+}
+.vision-label{font-family:var(--f-mono);font-size:0.6rem;color:rgba(245,243,239,0.3);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:14px;}
+.vision-text{
+  font-family:var(--f-serif);font-size:clamp(1.2rem,2.2vw,1.6rem);
+  font-style:italic;font-weight:400;color:var(--paper);line-height:1.5;
+  position:relative;z-index:1;
+}
+
+/* ================================================
+   PROBLEM SECTION
+   ================================================ */
+#problem{background:var(--ink);}
+.prob-header{text-align:center;margin-bottom:64px;}
+.prob-header h2{font-size:clamp(1.8rem,3.5vw,2.8rem);color:var(--paper);margin-bottom:14px;}
+.prob-header p{color:rgba(245,243,239,0.45);max-width:500px;margin:0 auto;font-weight:300;}
+.prob-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(245,243,239,0.08);border:1px solid rgba(245,243,239,0.08);border-radius:var(--r-xl);overflow:hidden;}
+.prob-item{
+  background:var(--ink-90);padding:32px 28px;cursor:default;
+  transition:background 0.2s;
+}
+.prob-item:hover{background:var(--ink-80);}
+.prob-n{font-family:var(--f-serif);font-size:2.5rem;font-weight:400;font-style:italic;color:rgba(245,243,239,0.07);line-height:1;margin-bottom:14px;}
+.prob-item h4{font-size:0.92rem;font-weight:700;color:var(--paper);margin-bottom:8px;}
+.prob-item p{font-size:0.78rem;color:rgba(245,243,239,0.45);font-weight:300;line-height:1.7;}
+.prob-item .prob-stat{
+  display:inline-flex;margin-top:12px;
+  font-family:var(--f-serif);font-size:1.4rem;font-weight:700;color:rgba(245,243,239,0.7);
+  font-style:italic;
+}
+
+/* vs comparison */
+.vs-row{
+  display:grid;grid-template-columns:1fr auto 1fr;
+  gap:20px;align-items:center;margin-top:56px;
+}
+.vs-col{border-radius:var(--r-lg);overflow:hidden;}
+.vs-header{padding:12px 18px;font-family:var(--f-mono);font-size:0.6rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;}
+.vs-header.bad{background:rgba(245,243,239,0.05);color:rgba(245,243,239,0.3);}
+.vs-header.good{background:rgba(245,243,239,0.12);color:rgba(245,243,239,0.7);}
+.vs-items{background:rgba(245,243,239,0.03);border:1px solid rgba(245,243,239,0.07);border-top:none;border-radius:0 0 var(--r-lg) var(--r-lg);}
+.vs-item{
+  padding:14px 18px;
+  border-bottom:1px solid rgba(245,243,239,0.04);
+  font-size:0.78rem;line-height:1.5;
+}
+.vs-item:last-child{border-bottom:none;}
+.vs-item.bad-i{color:rgba(245,243,239,0.3);}
+.vs-item.good-i{color:rgba(245,243,239,0.8);font-weight:500;}
+.vs-vs-badge{
+  font-family:var(--f-serif);font-size:1.2rem;font-style:italic;
+  color:rgba(245,243,239,0.2);text-align:center;
+}
+
+/* ================================================
+   PRODUCT LOOP
+   ================================================ */
+#loop{background:var(--paper);}
+.loop-layout{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center;}
+.loop-left h2{font-size:clamp(1.8rem,3vw,2.6rem);margin-bottom:16px;letter-spacing:-0.03em;}
+.loop-left p{color:var(--ink-40);font-weight:300;line-height:1.8;font-size:0.97rem;margin-bottom:28px;}
+.loop-left blockquote{
+  border-left:3px solid var(--ink);padding:16px 20px;
+  background:var(--paper-dim);border-radius:0 var(--r-md) var(--r-md) 0;
+  font-family:var(--f-serif);font-style:italic;font-size:1.0rem;color:var(--ink-40);line-height:1.6;
+}
+.loop-steps{display:flex;flex-direction:column;gap:0;}
+.loop-step{
+  display:flex;gap:20px;align-items:flex-start;
+  padding:22px 0;border-bottom:1px solid var(--rule);
+  position:relative;
+  transition:background 0.2s;cursor:default;
+}
+.loop-step:last-child{border-bottom:none;}
+.loop-step-num{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--ink);color:var(--paper);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--f-mono);font-size:0.7rem;font-weight:600;flex-shrink:0;
+}
+.loop-step-content h4{font-size:0.92rem;font-weight:700;margin-bottom:4px;}
+.loop-step-content p{font-size:0.8rem;color:var(--ink-40);font-weight:300;line-height:1.6;}
+.loop-arrow{
+  position:absolute;left:18px;bottom:-1px;
+  font-family:var(--f-mono);font-size:0.55rem;color:var(--ink-10);
+  writing-mode:vertical-rl;
+}
+
+/* ================================================
+   MVP FEATURES
+   ================================================ */
+#features{background:var(--ink-90);}
+.feat-header{text-align:center;margin-bottom:64px;}
+.feat-header h2{font-size:clamp(1.8rem,3.5vw,2.8rem);color:var(--paper);margin-bottom:14px;}
+.feat-header p{color:rgba(245,243,239,0.45);max-width:500px;margin:0 auto;font-weight:300;}
+
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(245,243,239,0.06);}
+.feat-card{
+  background:var(--ink);padding:32px 28px;
+  transition:background 0.2s;cursor:default;
+  position:relative;overflow:hidden;
+}
+.feat-card:hover{background:rgba(245,243,239,0.03);}
+.feat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;
+  height:1px;background:rgba(245,243,239,0.08);
+}
+.feat-card:hover::before{background:rgba(245,243,239,0.25);}
+.feat-icon{
+  width:48px;height:48px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;margin-bottom:18px;
+  background:rgba(245,243,239,0.05);
+}
+.feat-card h4{font-size:0.95rem;font-weight:700;color:var(--paper);margin-bottom:10px;}
+.feat-card p{font-size:0.78rem;color:rgba(245,243,239,0.45);font-weight:300;line-height:1.7;}
+.feat-items{margin-top:14px;display:flex;flex-direction:column;gap:6px;}
+.feat-item{
+  display:flex;align-items:flex-start;gap:8px;
+  font-size:0.74rem;color:rgba(245,243,239,0.55);font-weight:300;
+}
+.feat-item::before{content:'—';color:rgba(245,243,239,0.2);font-family:var(--f-mono);font-size:0.6rem;flex-shrink:0;margin-top:2px;}
+.feat-n{position:absolute;top:18px;right:22px;font-family:var(--f-mono);font-size:0.55rem;color:rgba(245,243,239,0.15);letter-spacing:0.1em;}
+
+/* NOT in MVP row */
+.not-mvp{
+  margin-top:40px;padding:22px 28px;
+  background:rgba(245,243,239,0.03);
+  border:1px solid rgba(245,243,239,0.07);border-radius:var(--r-lg);
+  display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+}
+.not-mvp-label{font-family:var(--f-mono);font-size:0.6rem;color:rgba(245,243,239,0.25);letter-spacing:0.1em;text-transform:uppercase;flex-shrink:0;}
+.not-mvp-items{display:flex;flex-wrap:wrap;gap:8px;}
+.not-mvp-item{
+  font-size:0.7rem;color:rgba(245,243,239,0.2);
+  background:rgba(245,243,239,0.03);border:1px solid rgba(245,243,239,0.06);
+  border-radius:100px;padding:4px 14px;
+  position:relative;
+}
+.not-mvp-item::after{content:'';position:absolute;inset:0;top:50%;transform:translateY(-50%);height:1px;background:rgba(245,243,239,0.2);}
+
+/* ================================================
+   UX PRINCIPLES
+   ================================================ */
+#ux{background:var(--paper);}
+.ux-layout{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:start;}
+.ux-left h2{font-size:clamp(1.8rem,3vw,2.6rem);margin-bottom:16px;letter-spacing:-0.03em;}
+.ux-left p{color:var(--ink-40);font-weight:300;line-height:1.8;font-size:0.97rem;margin-bottom:32px;}
+
+/* UX principle cards */
+.ux-principles{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.uxp{
+  padding:22px 20px;
+  background:var(--white);border:1px solid var(--rule-strong);border-radius:var(--r-lg);
+  box-shadow:var(--sh-card);transition:box-shadow 0.2s,transform 0.2s;cursor:default;
+}
+.uxp:hover{box-shadow:var(--sh-lift);transform:translateY(-3px);}
+.uxp-icon{font-size:1.4rem;margin-bottom:10px;}
+.uxp h4{font-size:0.85rem;font-weight:700;margin-bottom:5px;}
+.uxp p{font-size:0.74rem;color:var(--ink-40);font-weight:300;line-height:1.6;}
+
+/* UX rules */
+.ux-rules{display:flex;flex-direction:column;gap:12px;}
+.ux-rule{
+  padding:18px 20px;
+  display:flex;gap:14px;align-items:flex-start;
+  background:var(--white);border:1px solid var(--rule-strong);border-radius:var(--r-md);
+  box-shadow:var(--sh-card);
+}
+.ux-rule-num{
+  width:28px;height:28px;border-radius:7px;background:var(--ink);
+  color:var(--paper);display:flex;align-items:center;justify-content:center;
+  font-family:var(--f-mono);font-size:0.62rem;font-weight:600;flex-shrink:0;
+}
+.ux-rule h4{font-size:0.83rem;font-weight:700;margin-bottom:3px;}
+.ux-rule p{font-size:0.75rem;color:var(--ink-40);font-weight:300;}
+
+/* ================================================
+   DIFFERENTIATORS — THE "DECISION ENGINE"
+   ================================================ */
+#decision{background:var(--ink);}
+.dec-header{text-align:center;margin-bottom:64px;}
+.dec-header h2{font-size:clamp(1.8rem,3.5vw,2.8rem);color:var(--paper);margin-bottom:14px;}
+.dec-header p{color:rgba(245,243,239,0.45);max-width:540px;margin:0 auto;font-weight:300;}
+.dec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:56px;}
+.dec-card{
+  padding:28px 26px;
+  background:rgba(245,243,239,0.03);
+  border:1px solid rgba(245,243,239,0.07);
+  border-radius:var(--r-lg);
+  transition:border-color 0.2s;cursor:default;
+}
+.dec-card:hover{border-color:rgba(245,243,239,0.18);}
+.dec-card h4{font-size:0.9rem;font-weight:700;color:var(--paper);margin-bottom:10px;}
+.dec-card p{font-size:0.78rem;color:rgba(245,243,239,0.45);font-weight:300;line-height:1.7;}
+.dec-card-icon{font-size:1.5rem;margin-bottom:14px;}
+
+/* Action-oriented showcase */
+.action-compare{
+  display:grid;grid-template-columns:1fr auto 1fr;gap:24px;align-items:stretch;
+}
+.ac-col{border-radius:var(--r-xl);overflow:hidden;}
+.ac-header{
+  padding:14px 20px;
+  font-family:var(--f-mono);font-size:0.6rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;
+}
+.ac-header.bad{background:rgba(244,63,94,0.08);color:rgba(251,113,133,0.7);}
+.ac-header.good{background:rgba(52,211,153,0.08);color:rgba(52,211,153,0.8);}
+.ac-items{background:rgba(245,243,239,0.02);border:1px solid rgba(245,243,239,0.06);border-top:none;border-radius:0 0 var(--r-xl) var(--r-xl);}
+.ac-item{
+  padding:16px 20px;border-bottom:1px solid rgba(245,243,239,0.04);
+}
+.ac-item:last-child{border-bottom:none;}
+.ac-item.bad-i{font-size:0.8rem;color:rgba(245,243,239,0.3);}
+.ac-item.good-i{font-size:0.8rem;color:rgba(245,243,239,0.75);font-weight:500;line-height:1.5;}
+.ac-divider{display:flex;align-items:center;justify-content:center;}
+.ac-arrow{
+  font-family:var(--f-serif);font-size:2rem;font-style:italic;
+  color:rgba(245,243,239,0.1);
+}
+
+/* ================================================
+   DISTRIBUTION
+   ================================================ */
+#distribution{background:var(--paper-dim);}
+.dist-header{text-align:center;margin-bottom:64px;}
+.dist-header h2{font-size:clamp(1.8rem,3.5vw,2.8rem);margin-bottom:14px;letter-spacing:-0.03em;}
+.dist-header p{color:var(--ink-40);max-width:500px;margin:0 auto;font-weight:300;}
+.dist-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.dist-card{
+  padding:28px 24px;background:var(--white);
+  border:1px solid var(--rule-strong);border-radius:var(--r-lg);
+  box-shadow:var(--sh-card);transition:box-shadow 0.2s,transform 0.2s;cursor:default;
+}
+.dist-card:hover{box-shadow:var(--sh-lift);transform:translateY(-3px);}
+.dist-card-num{
+  font-family:var(--f-serif);font-size:2.5rem;font-weight:800;
+  color:var(--paper-dark);letter-spacing:-0.06em;line-height:1;margin-bottom:12px;
+}
+.dist-card h4{font-size:0.88rem;font-weight:700;margin-bottom:8px;}
+.dist-card p{font-size:0.76rem;color:var(--ink-40);font-weight:300;line-height:1.7;}
+.dist-card-tag{
+  display:inline-flex;margin-top:12px;
+  font-family:var(--f-mono);font-size:0.55rem;letter-spacing:0.08em;
+  padding:3px 9px;border-radius:4px;text-transform:uppercase;
+  border:1px solid var(--rule-strong);color:var(--ink-40);background:var(--paper);
+}
+
+/* WhatsApp feature spotlight */
+.wa-spotlight{
+  margin-top:40px;
+  background:var(--ink);border-radius:var(--r-xl);padding:48px 44px;
+  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;
+  position:relative;overflow:hidden;
+}
+.wa-spotlight::before{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle,rgba(245,243,239,0.03) 1px,transparent 1px);
+  background-size:24px 24px;
+}
+.wa-left{position:relative;z-index:1;}
+.wa-left h3{font-family:var(--f-serif);font-size:1.8rem;font-weight:700;color:var(--paper);margin-bottom:16px;line-height:1.2;}
+.wa-left p{color:rgba(245,243,239,0.5);font-weight:300;line-height:1.8;font-size:0.95rem;}
+.wa-right{position:relative;z-index:1;display:flex;flex-direction:column;gap:10px;}
+.wa-msg{
+  padding:12px 16px;border-radius:12px;
+  font-size:0.78rem;line-height:1.6;
+}
+.wa-msg.user{background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.2);color:rgba(245,243,239,0.8);align-self:flex-end;border-radius:12px 12px 4px 12px;}
+.wa-msg.bot{background:rgba(245,243,239,0.05);border:1px solid rgba(245,243,239,0.1);color:rgba(245,243,239,0.65);align-self:flex-start;border-radius:12px 12px 12px 4px;}
+.wa-msg-header{font-size:0.55rem;font-weight:700;letter-spacing:0.08em;margin-bottom:4px;text-transform:uppercase;}
+.wa-msg-header.user-h{color:rgba(37,211,102,0.6);}
+.wa-msg-header.bot-h{color:rgba(245,243,239,0.3);}
+
+/* ================================================
+   ARCHITECTURE
+   ================================================ */
+#architecture{background:var(--paper);}
+.arch-header{text-align:center;margin-bottom:64px;}
+.arch-header h2{font-size:clamp(1.8rem,3.5vw,2.8rem);margin-bottom:14px;letter-spacing:-0.03em;}
+.arch-header p{color:var(--ink-40);max-width:500px;margin:0 auto;font-weight:300;}
+
+.arch-entities{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  border:1px solid var(--rule-strong);border-radius:var(--r-xl);overflow:hidden;gap:1px;
+  background:var(--rule-strong);margin-bottom:40px;
+}
+.arch-entity{
+  background:var(--white);padding:22px 20px;cursor:default;transition:background 0.2s;
+}
+.arch-entity:hover{background:var(--paper);}
+.arch-entity-icon{font-size:1.2rem;margin-bottom:8px;}
+.arch-entity-name{font-family:var(--f-serif);font-size:1.0rem;font-weight:700;margin-bottom:3px;}
+.arch-entity-desc{font-size:0.68rem;color:var(--ink-40);font-weight:300;}
+
+.arch-flow-row{
+  display:flex;align-items:center;justify-content:center;gap:0;
+  flex-wrap:wrap;row-gap:16px;margin-bottom:40px;
+}
+.arch-node{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:90px;}
+.arch-node-box{
+  width:60px;height:60px;border-radius:14px;
+  border:1px solid var(--rule-strong);background:var(--white);
+  display:flex;align-items:center;justify-content:center;font-size:1.4rem;
+  box-shadow:var(--sh-card);transition:transform 0.2s;cursor:default;
+}
+.arch-node-box:hover{transform:scale(1.07);}
+.arch-node-lbl{font-family:var(--f-mono);font-size:0.55rem;color:var(--ink-40);text-align:center;letter-spacing:0.05em;line-height:1.4;}
+.arch-arr-bw{width:32px;display:flex;align-items:center;flex-shrink:0;}
+.arch-arr-bw svg{width:100%;height:10px;}
+
+.arch-subgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.arch-sub{padding:24px 22px;background:var(--white);border:1px solid var(--rule-strong);border-radius:var(--r-lg);box-shadow:var(--sh-card);border-left:3px solid var(--ink);}
+.arch-sub h4{font-size:0.82rem;font-weight:700;margin-bottom:10px;}
+.arch-sub ul{display:flex;flex-direction:column;gap:6px;}
+.arch-sub ul li{font-size:0.74rem;color:var(--ink-40);display:flex;gap:7px;font-weight:300;}
+.arch-sub ul li::before{content:'→';font-family:var(--f-mono);font-size:0.58rem;color:var(--ink-20);flex-shrink:0;}
+
+/* ================================================
+   MONETIZATION
+   ================================================ */
+#monetize{background:var(--ink-90);}
+.mono-header{text-align:center;margin-bottom:64px;}
+.mono-header h2{font-size:clamp(1.8rem,3.5vw,2.8rem);color:var(--paper);margin-bottom:14px;}
+.mono-header p{color:rgba(245,243,239,0.45);max-width:500px;margin:0 auto;font-weight:300;}
+.mono-phases{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(245,243,239,0.06);border-radius:var(--r-xl);overflow:hidden;border:1px solid rgba(245,243,239,0.06);}
+.mono-phase{background:var(--ink);padding:32px 28px;cursor:default;}
+.mono-phase-label{font-family:var(--f-mono);font-size:0.58rem;color:rgba(245,243,239,0.25);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:12px;}
+.mono-phase-title{font-family:var(--f-serif);font-size:1.3rem;font-weight:700;color:var(--paper);margin-bottom:6px;}
+.mono-phase-timeline{font-size:0.68rem;color:rgba(245,243,239,0.3);margin-bottom:18px;font-style:italic;}
+.mono-items{display:flex;flex-direction:column;gap:10px;}
+.mono-item{display:flex;align-items:flex-start;gap:10px;font-size:0.78rem;color:rgba(245,243,239,0.6);font-weight:300;line-height:1.5;}
+.mono-item::before{content:'↗';font-family:var(--f-mono);font-size:0.6rem;color:rgba(245,243,239,0.25);flex-shrink:0;margin-top:2px;}
+.mono-moat{
+  margin-top:40px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;
+}
+.moat-card{
+  padding:24px 20px;background:rgba(245,243,239,0.03);
+  border:1px solid rgba(245,243,239,0.07);border-radius:var(--r-lg);cursor:default;
+  transition:border-color 0.2s;
+}
+.moat-card:hover{border-color:rgba(245,243,239,0.2);}
+.moat-card-icon{font-size:1.3rem;margin-bottom:10px;}
+.moat-card h4{font-size:0.82rem;font-weight:700;color:var(--paper);margin-bottom:6px;}
+.moat-card p{font-size:0.72rem;color:rgba(245,243,239,0.4);font-weight:300;line-height:1.6;}
+
+/* ================================================
+   METRICS
+   ================================================ */
+#metrics{background:var(--paper);}
+.met-header{text-align:center;margin-bottom:64px;}
+.met-header h2{font-size:clamp(1.8rem,3.5vw,2.8rem);margin-bottom:14px;letter-spacing:-0.03em;}
+.met-layout{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;}
+.met-track{display:flex;flex-direction:column;gap:0;border:1px solid var(--rule-strong);border-radius:var(--r-xl);overflow:hidden;}
+.met-item{
+  padding:22px 24px;background:var(--white);
+  border-bottom:1px solid var(--rule);
+  display:flex;align-items:center;gap:16px;cursor:default;transition:background 0.2s;
+}
+.met-item:last-child{border-bottom:none;}
+.met-item:hover{background:var(--paper);}
+.met-check{
+  width:24px;height:24px;border-radius:6px;background:var(--ink);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  color:var(--paper);font-size:0.7rem;
+}
+.met-item h4{font-size:0.85rem;font-weight:700;}
+.met-item p{font-size:0.72rem;color:var(--ink-40);font-weight:300;}
+.met-ignore{display:flex;flex-direction:column;gap:0;border:1px solid var(--rule-strong);border-radius:var(--r-xl);overflow:hidden;}
+.met-ign-item{
+  padding:22px 24px;background:var(--paper-dim);
+  border-bottom:1px solid var(--rule);
+  display:flex;align-items:center;gap:16px;cursor:default;opacity:0.5;
+}
+.met-ign-item:last-child{border-bottom:none;}
+.met-x{
+  width:24px;height:24px;border-radius:6px;border:1px solid var(--rule-strong);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  color:var(--ink-20);font-size:0.7rem;
+}
+.met-ign-item h4{font-size:0.85rem;font-weight:700;text-decoration:line-through;}
+.met-ign-item p{font-size:0.72rem;color:var(--ink-40);font-weight:300;}
+
+/* ================================================
+   STANDOUT
+   ================================================ */
+#standout{background:var(--ink);}
+.stand-inner{max-width:900px;margin:0 auto;text-align:center;}
+.stand-inner h2{font-size:clamp(2rem,4vw,3.2rem);color:var(--paper);margin-bottom:20px;letter-spacing:-0.04em;}
+.stand-inner .stand-sub{font-family:var(--f-serif);font-style:italic;font-size:1.1rem;color:rgba(245,243,239,0.45);margin-bottom:56px;}
+.stand-pts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;text-align:left;margin-bottom:56px;}
+.stand-pt-card{
+  padding:28px 26px;
+  background:rgba(245,243,239,0.03);border:1px solid rgba(245,243,239,0.08);
+  border-radius:var(--r-lg);
+}
+.stand-pt-card h4{font-size:0.9rem;font-weight:700;color:var(--paper);margin-bottom:8px;}
+.stand-pt-card p{font-size:0.78rem;color:rgba(245,243,239,0.45);font-weight:300;line-height:1.7;}
+/* Final insight */
+.final-insight{
+  padding:44px 48px;
+  background:var(--paper);border-radius:var(--r-xl);
+  position:relative;overflow:hidden;
+}
+.final-insight::before{content:'"';font-family:var(--f-serif);font-size:14rem;font-weight:900;color:var(--paper-dark);position:absolute;top:-40px;left:20px;line-height:1;pointer-events:none;}
+.final-insight-text{
+  font-family:var(--f-serif);font-size:clamp(1.2rem,2.5vw,1.75rem);
+  font-weight:700;color:var(--ink);line-height:1.4;
+  position:relative;z-index:1;letter-spacing:-0.02em;
+}
+.final-insight-sub{font-size:0.85rem;color:var(--ink-40);font-weight:300;margin-top:12px;position:relative;z-index:1;}
+
+/* ================================================
+   CTA
+   ================================================ */
+#cta{background:var(--paper-dim);padding:120px 0;overflow:hidden;text-align:center;}
+.cta-inner{max-width:640px;margin:0 auto;}
+.cta-eye{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--f-mono);font-size:0.62rem;color:var(--ink-40);
+  letter-spacing:0.14em;text-transform:uppercase;margin-bottom:24px;
+}
+.cta-line{width:20px;height:1px;background:var(--ink-40);}
+.cta-inner h2{font-size:clamp(2rem,4vw,3.2rem);letter-spacing:-0.04em;margin-bottom:18px;}
+.cta-inner p{color:var(--ink-40);font-size:1.0rem;font-weight:300;line-height:1.8;margin-bottom:44px;}
+.cta-btns{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;}
+.btn-cta-p{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--ink);color:var(--paper);
+  font-family:var(--f-sans);font-weight:600;font-size:0.95rem;
+  padding:15px 34px;border-radius:100px;
+  transition:background 0.2s,transform 0.15s;letter-spacing:0.01em;
+}
+.btn-cta-p:hover{background:var(--ink-60);transform:translateY(-2px);}
+.btn-cta-s{
+  display:inline-flex;align-items:center;gap:8px;
+  background:transparent;color:var(--ink);
+  font-family:var(--f-sans);font-weight:500;font-size:0.95rem;
+  padding:14px 34px;border-radius:100px;
+  border:1px solid var(--rule-strong);
+  transition:border-color 0.2s,transform 0.15s;letter-spacing:0.01em;
+}
+.btn-cta-s:hover{border-color:var(--ink-40);transform:translateY(-2px);}
+.cta-trust{
+  margin-top:44px;display:flex;align-items:center;justify-content:center;
+  gap:28px;flex-wrap:wrap;
+}
+.cta-trust-i{display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--ink-20);}
+.cta-trust-i::before{content:'✓';color:var(--ink-40);font-weight:700;}
+
+/* ================================================
+   FOOTER
+   ================================================ */
+footer{padding:32px 0;border-top:1px solid var(--rule-strong);}
+.foot-inner{
+  max-width:1160px;margin:0 auto;padding:0 28px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+}
+.foot-logo{font-family:var(--f-serif);font-size:0.95rem;font-weight:700;color:var(--ink);}
+.foot-note{font-family:var(--f-mono);font-size:0.58rem;color:var(--ink-20);letter-spacing:0.08em;}
+.foot-badge{font-family:var(--f-mono);font-size:0.58rem;padding:4px 12px;border-radius:5px;border:1px solid var(--rule-strong);color:var(--ink-40);}
+
+/* ================================================
+   RESPONSIVE
+   ================================================ */
+@media(max-width:1100px){
+  .hero-layout{gap:48px;}
+  .dist-grid{grid-template-columns:repeat(2,1fr);}
+  .arch-entities{grid-template-columns:repeat(4,1fr);}
+}
+@media(max-width:900px){
+  section{padding:72px 0;}
+  .container{padding:0 18px;}
+  nav .nav-chip{display:none;}
+  .hero-layout{grid-template-columns:1fr;gap:48px;}
+  .hero-app{order:-1;}
+  .hero-stats-grid{grid-template-columns:repeat(2,1fr);}
+  .fc-alert-card,.fc-income,.fc-wa-card{display:none;}
+  .overview-layout{grid-template-columns:1fr;gap:36px;}
+  .prob-grid{grid-template-columns:1fr 1fr;}
+  .loop-layout{grid-template-columns:1fr;gap:36px;}
+  .feat-grid{grid-template-columns:1fr 1fr;}
+  .ux-layout{grid-template-columns:1fr;gap:36px;}
+  .dec-grid{grid-template-columns:1fr 1fr;}
+  .dist-grid{grid-template-columns:1fr 1fr;}
+  .wa-spotlight{grid-template-columns:1fr;gap:32px;}
+  .arch-entities{grid-template-columns:repeat(2,1fr);}
+  .arch-subgrid{grid-template-columns:1fr;}
+  .mono-moat{grid-template-columns:1fr 1fr;}
+  .met-layout{grid-template-columns:1fr;}
+  .stand-pts-grid{grid-template-columns:1fr;}
+  .vs-row{grid-template-columns:1fr;gap:12px;}
+  .vs-vs-badge{display:none;}
+  .action-compare{grid-template-columns:1fr;gap:12px;}
+  .ac-divider{display:none;}
+  .mono-phases{grid-template-columns:1fr;}
+}
+@media(max-width:600px){
+  .prob-grid{grid-template-columns:1fr;}
+  .dec-grid{grid-template-columns:1fr;}
+  .feat-grid{grid-template-columns:1fr;}
+  .ux-principles{grid-template-columns:1fr;}
+  .dist-grid{grid-template-columns:1fr;}
+  .mono-moat{grid-template-columns:1fr;}
+  .cta-btns{flex-direction:column;width:100%;}
+  .btn-cta-p,.btn-cta-s{width:100%;justify-content:center;}
+  .foot-inner{flex-direction:column;text-align:center;}
+}
+
+/* ================================================
+   SCROLL ANIMATIONS
+   ================================================ */
+.fade-up{opacity:0;transform:translateY(20px);transition:opacity 0.55s ease,transform 0.55s ease;}
+.fade-up.in{opacity:1;transform:translateY(0);}
+
+/* ================================================
+   PRINT
+   ================================================ */
+@media print{
+  nav{display:none;}
+  section{page-break-inside:avoid;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="main-nav">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <div class="nav-logo-mark">
+        <svg viewBox="0 0 18 18" fill="none">
+          <path d="M4 13c0-2.8 2.2-5 5-5s5 2.2 5 5" stroke="white" stroke-width="1.7" stroke-linecap="round"/>
+          <circle cx="9" cy="6" r="2.5" fill="white"/>
+          <path d="M6 15.5c0-1.7 1.3-3 3-3s3 1.3 3 3" stroke="white" stroke-width="1.4" stroke-linecap="round" opacity="0.6"/>
+        </svg>
+      </div>
+      <span class="nav-logo-text">Gau Care</span>
+    </div>
+    <div class="nav-chip">DAIRY TECH · CASE STUDY</div>
+    <a href="#cta" class="nav-cta">Hire Me →</a>
+  </div>
+</nav>
+
+<!-- ================================================
+     HERO
+     ================================================ -->
+<section id="hero">
+  <div class="container">
+    <div class="hero-layout">
+
+      <!-- Left -->
+      <div>
+        <div class="hero-eyebrow">
+          <div class="h-eye-dot"></div>
+          <span>Built From Scratch · India Dairy Tech</span>
+        </div>
+
+        <h1 class="hero-h1">
+          Gau<br>Care<span class="h1-italic">.</span>
+        </h1>
+        <p class="hero-h1-eng">Apni Dairy Badho. Har Din. — Grow Your Dairy. Every Day.</p>
+        <div class="hero-rule"></div>
+
+        <p class="hero-desc">
+          A <strong>digital operating system for dairy farmers</strong> — not a cattle management SaaS. Built to increase income, reduce losses, and become part of the farmer's daily routine. Offline-first, icon-driven, WhatsApp-native.
+        </p>
+
+        <div class="hero-badges">
+          <span class="hbdg hbdg-w">React Native</span>
+          <span class="hbdg hbdg-w">NestJS</span>
+          <span class="hbdg hbdg-w">MongoDB</span>
+          <span class="hbdg hbdg-w">PostgreSQL</span>
+          <span class="hbdg hbdg-d">Redis</span>
+          <span class="hbdg hbdg-d">Bull Queues</span>
+          <span class="hbdg hbdg-d">WhatsApp API</span>
+          <span class="hbdg hbdg-d">Firebase FCM</span>
+          <span class="hbdg hbdg-d">Offline Sync</span>
+          <span class="hbdg hbdg-d">Hindi · Gujarati</span>
+        </div>
+
+        <div class="hero-stats-grid">
+          <div class="hsg-item">
+            <div class="hsg-n">5+</div>
+            <div class="hsg-l">Core Modules</div>
+          </div>
+          <div class="hsg-item">
+            <div class="hsg-n">0→1</div>
+            <div class="hsg-l">Built From Scratch</div>
+          </div>
+          <div class="hsg-item">
+            <div class="hsg-n">≤3</div>
+            <div class="hsg-l">Taps Per Action</div>
+          </div>
+          <div class="hsg-item">
+            <div class="hsg-n">DAU</div>
+            <div class="hsg-l">Core KPI Focus</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right — Phone -->
+      <div class="hero-app">
+        <!-- Floating card: WhatsApp conv -->
+        <div class="fc fc-wa-card">
+          <div class="fc-label">WhatsApp Entry</div>
+          <div class="fc-wa-msg-text">"Ganga ne aaj 8 liter doodh diya"</div>
+          <div class="fc-divider"></div>
+          <div class="fc-wa-reply">✓ Ganga ka aaj ka record save ho gaya — 8 L</div>
+        </div>
+
+        <!-- Floating card: Smart Alert -->
+        <div class="fc fc-alert-card">
+          <div class="fc-label">Action Required</div>
+          <div class="fc-title">Milk dropped 20%</div>
+          <div class="fc-sub">Check Lakshmi's feed or schedule a vet visit. Last 3-day avg: 6.8L ↓</div>
+        </div>
+
+        <!-- Floating card: Income -->
+        <div class="fc fc-income">
+          <div class="fc-label">This Month</div>
+          <div class="fc-val">₹74,200</div>
+          <div class="fc-change">
+            <span class="fc-pill up">↑ +18%</span>
+          </div>
+        </div>
+
+        <!-- Phone -->
+        <div class="app-phone">
+          <div class="ph-notch">
+            <div class="ph-notch-pill">
+              <div class="ph-sens"></div>
+              <div class="ph-cam"></div>
+            </div>
+          </div>
+          <div class="ph-screen">
+            <!-- Status bar -->
+            <div class="ph-status">
+              <span class="ph-time">9:41</span>
+              <div class="ph-icons">
+                <div class="phi s"></div><div class="phi m"></div><div class="phi l"></div>
+                <div class="phi bat" style="margin-left:3px;"></div>
+              </div>
+            </div>
+
+            <!-- App header -->
+            <div class="ph-app-header">
+              <div class="ph-app-logo">
+                <div class="ph-logo-icon">🐄</div>
+                <span class="ph-app-name">Gau Care</span>
+              </div>
+              <div class="ph-notif-btn">🔔</div>
+            </div>
+
+            <!-- Greeting -->
+            <div class="ph-greeting">
+              <div class="ph-greet-text">Namaste,</div>
+              <div class="ph-greet-name">Ramesh Ji 🌅</div>
+            </div>
+
+            <!-- Action card -->
+            <div class="ph-action-card">
+              <div class="ph-action-label">⚡ Aaj ka kaam</div>
+              <div class="ph-action-text">Lakshmi ki heat cycle kal shuru hogi</div>
+              <div class="ph-action-sub">Doctor ko aaj book karein · Dawai ready rakhein</div>
+              <div class="ph-action-cta">Abhi karein →</div>
+            </div>
+
+            <!-- Quick stats -->
+            <div class="ph-quick-stats">
+              <div class="ph-qs">
+                <div class="ph-qs-label">Aaj ka doodh</div>
+                <div class="ph-qs-val">42 L</div>
+                <div class="ph-qs-change">↑ +4L vs kal</div>
+              </div>
+              <div class="ph-qs">
+                <div class="ph-qs-label">Is hafte ki kamai</div>
+                <div class="ph-qs-val">₹18.4k</div>
+                <div class="ph-qs-change">↑ +12%</div>
+              </div>
+            </div>
+
+            <!-- Cattle list -->
+            <div class="ph-cattle-section">
+              <div class="ph-sec-header">
+                <span class="ph-sec-title">Aapki Gaayein</span>
+                <span class="ph-sec-link">Sab dekho →</span>
+              </div>
+              <div class="ph-cow-row">
+                <div class="ph-cow-av">🐄</div>
+                <div>
+                  <div class="ph-cow-name">Lakshmi</div>
+                  <div class="ph-cow-meta">HF Mix · 4 yrs</div>
+                  <div class="ph-cow-tag ct-heat">🌡 Heat Soon</div>
+                </div>
+                <div class="ph-cow-stat">
+                  <div class="ph-cow-milk">14L</div>
+                  <div class="ph-cow-mlabel">aaj</div>
+                </div>
+              </div>
+              <div class="ph-cow-row">
+                <div class="ph-cow-av">🐄</div>
+                <div>
+                  <div class="ph-cow-name">Ganga</div>
+                  <div class="ph-cow-meta">Gir · 5 yrs</div>
+                  <div class="ph-cow-tag ct-preg">🤰 Pregnant</div>
+                </div>
+                <div class="ph-cow-stat">
+                  <div class="ph-cow-milk">8L</div>
+                  <div class="ph-cow-mlabel">aaj</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- WhatsApp bar -->
+            <div class="ph-wa">
+              <div class="ph-wa-header">
+                <div class="ph-wa-icon">W</div>
+                <span class="ph-wa-label">WhatsApp</span>
+              </div>
+              <div class="ph-wa-msg">"Is mahine mera total doodh kitna tha?"</div>
+            </div>
+
+            <!-- Tab bar -->
+            <div class="ph-tabs">
+              <div class="ph-tab"><div class="ph-tab-icon active">🏠</div><div class="ph-tab-label active">Ghar</div></div>
+              <div class="ph-tab"><div class="ph-tab-icon">🐄</div><div class="ph-tab-label">Gaayein</div></div>
+              <div class="ph-tab"><div class="ph-tab-icon">🥛</div><div class="ph-tab-label">Doodh</div></div>
+              <div class="ph-tab"><div class="ph-tab-icon">📊</div><div class="ph-tab-label">Kamai</div></div>
+              <div class="ph-tab"><div class="ph-tab-icon">⚙️</div><div class="ph-tab-label">Settings</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule"></div>
+
+<!-- ================================================
+     OVERVIEW
+     ================================================ -->
+<section id="overview">
+  <div class="container">
+    <div class="overview-layout">
+      <div class="ov-left fade-up">
+        <div class="section-tag">Project Overview</div>
+        <h2>Not a Cattle SaaS. A <em class="italic-display">Dairy Income Engine.</em></h2>
+        <p>Gau Care is built on a foundational insight: farmers don't want dashboards or analytics — they want to know <strong>what to do today</strong>. So we built a decision engine, not a data app.</p>
+        <p>Every screen, every notification, every WhatsApp response is action-oriented. Not "milk: 8L today" — but "milk dropped 20%, check Lakshmi's feed." The product measures success in daily habits formed, not features shipped.</p>
+        <p>Built offline-first, Hindi-first, icon-first — for farmers with low digital literacy running 3–20 cattle operations across rural India.</p>
+        <div class="vision-block fade-up">
+          <div class="vision-label">// Core Vision</div>
+          <div class="vision-text">"We are not building software. We are building infrastructure for the dairy economy."</div>
+        </div>
+      </div>
+      <div class="ov-right fade-up">
+        <div class="ov-stat-row">
+          <div class="ov-stat-icon">🎯</div>
+          <div>
+            <div class="ov-stat-num">DAU</div>
+            <div class="ov-stat-label">Primary success metric — daily active usage</div>
+          </div>
+        </div>
+        <div class="ov-stat-row">
+          <div class="ov-stat-icon">🐄</div>
+          <div>
+            <div class="ov-stat-num">3–20</div>
+            <div class="ov-stat-label">Target cattle count per farmer household</div>
+          </div>
+        </div>
+        <div class="ov-stat-row">
+          <div class="ov-stat-icon">📱</div>
+          <div>
+            <div class="ov-stat-num">≤3</div>
+            <div class="ov-stat-label">Maximum taps for any core action</div>
+          </div>
+        </div>
+        <div class="ov-stat-row">
+          <div class="ov-stat-icon">💬</div>
+          <div>
+            <div class="ov-stat-num">WhatsApp</div>
+            <div class="ov-stat-label">Primary data entry interface for low-literacy users</div>
+          </div>
+        </div>
+        <div class="ov-stat-row">
+          <div class="ov-stat-icon">📶</div>
+          <div>
+            <div class="ov-stat-num">Offline</div>
+            <div class="ov-stat-label">Full offline sync — works in zero-connectivity villages</div>
+          </div>
+        </div>
+        <div class="ov-stat-row">
+          <div class="ov-stat-icon">🌐</div>
+          <div>
+            <div class="ov-stat-num">3+</div>
+            <div class="ov-stat-label">Languages — Hindi, Gujarati, Marathi + regional</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule"></div>
+
+<!-- ================================================
+     PROBLEM
+     ================================================ -->
+<section id="problem">
+  <div class="container">
+    <div class="prob-header fade-up">
+      <div class="section-tag" style="color:rgba(245,243,239,0.3);justify-content:center;">
+        <span style="width:22px;height:1px;background:rgba(245,243,239,0.3);"></span>
+        The Problem
+      </div>
+      <h2 style="color:var(--paper);">₹ Lost Every Day <em class="italic-display" style="color:rgba(245,243,239,0.4);">Without Knowing It</em></h2>
+      <p>Indian dairy farmers operate on instinct, not data. Every missed heat cycle, untracked milk drop, or poor selling decision silently erodes income.</p>
+    </div>
+
+    <div class="prob-grid fade-up">
+      <div class="prob-item">
+        <div class="prob-n">01</div>
+        <h4>Missed Breeding Cycles</h4>
+        <p>A missed heat cycle = 21 days lost + lost calf + lost future milk. Most farmers have no system to track or predict the next cycle.</p>
+        <div class="prob-stat">₹8,000+</div>
+      </div>
+      <div class="prob-item">
+        <div class="prob-n">02</div>
+        <h4>No Milk Production Tracking</h4>
+        <p>Farmers guess their weekly output. Without daily records, they can't detect gradual yield decline from health issues or poor feed until it's too late.</p>
+        <div class="prob-stat">20% avg loss</div>
+      </div>
+      <div class="prob-item">
+        <div class="prob-n">03</div>
+        <h4>Poor Cattle Price Decisions</h4>
+        <p>When to buy, when to sell, and at what price? Without market data or cattle history, farmers consistently leave money on the table.</p>
+        <div class="prob-stat">No benchmark</div>
+      </div>
+      <div class="prob-item">
+        <div class="prob-n">04</div>
+        <h4>Zero Digital Tools</h4>
+        <p>Existing farm apps are designed for desktop-first, English-speaking, tech-literate users. They fail rural India completely.</p>
+        <div class="prob-stat">0 usable apps</div>
+      </div>
+      <div class="prob-item">
+        <div class="prob-n">05</div>
+        <h4>Delayed Health Alerts</h4>
+        <p>By the time a farmer notices a sick cow, 3–5 days of milk yield are already lost. Early signals go undetected without a tracking system.</p>
+        <div class="prob-stat">3–5 days lost</div>
+      </div>
+      <div class="prob-item">
+        <div class="prob-n">06</div>
+        <h4>No Financial Visibility</h4>
+        <p>Farmers have no clear picture of monthly income, cost of cattle maintenance, or return on feed investment. Decision-making is entirely intuitive.</p>
+        <div class="prob-stat">Invisible P&amp;L</div>
+      </div>
+    </div>
+
+    <!-- Bad vs Good -->
+    <div class="vs-row fade-up" style="margin-top:60px;">
+      <div class="vs-col">
+        <div class="vs-header bad">❌ What Existing Apps Show</div>
+        <div class="vs-items">
+          <div class="vs-item bad-i">"Milk: 8L today"</div>
+          <div class="vs-item bad-i">"Cow: about to give birth"</div>
+          <div class="vs-item bad-i">"Breeding: scheduled"</div>
+          <div class="vs-item bad-i">"Health record: updated"</div>
+        </div>
+      </div>
+      <div class="vs-vs-badge">→</div>
+      <div class="vs-col">
+        <div class="vs-header good">✓ What Gau Care Shows</div>
+        <div class="vs-items">
+          <div class="vs-item good-i">"Milk dropped 20% — check Lakshmi's feed or call vet"</div>
+          <div class="vs-item good-i">"Ganga 3 din mein prasav karegi — dawai aur saaman ready rakho"</div>
+          <div class="vs-item good-i">"Lakshmi ki heat kal hai — aaj doctor book karo"</div>
+          <div class="vs-item good-i">"Seema ki tabiyat thik nahi lag rahi — vet visit zaruri hai"</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule" style="background:rgba(245,243,239,0.06);"></div>
+
+<!-- ================================================
+     PRODUCT LOOP
+     ================================================ -->
+<section id="loop">
+  <div class="container">
+    <div class="loop-layout">
+      <div class="loop-left fade-up">
+        <div class="section-tag">Core Product Loop</div>
+        <h2>Designed for <em class="italic-display">Daily Habit.</em></h2>
+        <p>The winner in this space is not the one with the best features. It's the one who becomes part of the farmer's daily routine. If a farmer doesn't use it every day, nothing else matters — the product dies.</p>
+        <blockquote>"Farmers don't want dashboards. They want to know: what should I do today?"</blockquote>
+      </div>
+      <div class="loop-steps fade-up">
+        <div class="loop-step">
+          <div class="loop-step-num">01</div>
+          <div class="loop-step-content">
+            <h4>Farmer Adds Cattle</h4>
+            <p>Onboarding under 60 seconds. Icon-based, minimal typing. Name, breed, age — that's all to start.</p>
+          </div>
+        </div>
+        <div class="loop-step">
+          <div class="loop-step-num">02</div>
+          <div class="loop-step-content">
+            <h4>Logs Daily Data</h4>
+            <p>1-tap milk entry, WhatsApp voice/text logging, or quick app screen. Designed for daily 30-second use.</p>
+          </div>
+        </div>
+        <div class="loop-step">
+          <div class="loop-step-num">03</div>
+          <div class="loop-step-content">
+            <h4>Receives Action Alerts</h4>
+            <p>Not data notifications — action prompts. "Call vet today." "Breed Lakshmi this week." "Check Ganga's feed."</p>
+          </div>
+        </div>
+        <div class="loop-step">
+          <div class="loop-step-num">04</div>
+          <div class="loop-step-content">
+            <h4>Sees Financial Benefit</h4>
+            <p>Weekly income summary, milk trend improvements, prevented missed cycles. Tangible ₹ outcome tied to app usage.</p>
+          </div>
+        </div>
+        <div class="loop-step">
+          <div class="loop-step-num">05</div>
+          <div class="loop-step-content">
+            <h4>Returns Daily</h4>
+            <p>Habit formed. The app becomes a trusted daily companion — not a one-time setup tool. This is the only KPI that matters.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule"></div>
+
+<!-- ================================================
+     MVP FEATURES
+     ================================================ -->
+<section id="features">
+  <div class="container">
+    <div class="feat-header fade-up">
+      <div class="section-tag" style="color:rgba(245,243,239,0.3);justify-content:center;">
+        <span style="width:22px;height:1px;background:rgba(245,243,239,0.3);"></span>
+        MVP Modules
+      </div>
+      <h2 style="color:var(--paper);">Sharp &amp; Small. <em class="italic-display" style="color:rgba(245,243,239,0.4);">By Design.</em></h2>
+      <p>We deliberately under-built the MVP. Every feature earns its place by directly increasing farmer income or reducing a daily pain.</p>
+    </div>
+    <div class="feat-grid fade-up">
+      <div class="feat-card">
+        <span class="feat-n">01</span>
+        <div class="feat-icon">🐄</div>
+        <h4>Cattle Management</h4>
+        <p>Add, edit, and view cattle profiles. The foundation everything else builds on.</p>
+        <div class="feat-items">
+          <div class="feat-item">Add/edit cattle with basic details</div>
+          <div class="feat-item">Age, breed, status fields</div>
+          <div class="feat-item">Profile history per animal</div>
+          <div class="feat-item">Offline-first with sync queue</div>
+        </div>
+      </div>
+      <div class="feat-card">
+        <span class="feat-n">02</span>
+        <div class="feat-icon">🥛</div>
+        <h4>Milk Tracking</h4>
+        <p>The daily habit-forming hook. 1-tap entry, instant feedback, weekly trends.</p>
+        <div class="feat-items">
+          <div class="feat-item">Daily milk entry — 1 tap</div>
+          <div class="feat-item">Daily and weekly summary</div>
+          <div class="feat-item">Yield trend + drop detection</div>
+          <div class="feat-item">WhatsApp entry supported</div>
+        </div>
+      </div>
+      <div class="feat-card">
+        <span class="feat-n">03</span>
+        <div class="feat-icon">🌡️</div>
+        <h4>Breeding Tracking</h4>
+        <p>The most underserved and highest-value layer. One missed cycle = ₹8,000+ loss.</p>
+        <div class="feat-items">
+          <div class="feat-item">Heat cycle tracking &amp; prediction</div>
+          <div class="feat-item">Pregnancy tracking</div>
+          <div class="feat-item">Calving preparation alerts</div>
+          <div class="feat-item">Historical breeding records</div>
+        </div>
+      </div>
+      <div class="feat-card">
+        <span class="feat-n">04</span>
+        <div class="feat-icon">🔔</div>
+        <h4>Smart Reminders</h4>
+        <p>Action-oriented alerts, not data pings. Timed to when the farmer needs to act.</p>
+        <div class="feat-items">
+          <div class="feat-item">Heat cycle alerts (24hr pre-warning)</div>
+          <div class="feat-item">Vaccination due reminders</div>
+          <div class="feat-item">Milk logging nudges</div>
+          <div class="feat-item">Calving preparation prompts</div>
+        </div>
+      </div>
+      <div class="feat-card">
+        <span class="feat-n">05</span>
+        <div class="feat-icon">📊</div>
+        <h4>Basic Dashboard</h4>
+        <p>Not analytics — a daily decision brief. What happened, what needs action, what you earned.</p>
+        <div class="feat-items">
+          <div class="feat-item">Total milk today / this week</div>
+          <div class="feat-item">Estimated earnings view</div>
+          <div class="feat-item">Action-item priority list</div>
+          <div class="feat-item">Per-cattle quick status</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="not-mvp fade-up">
+      <span class="not-mvp-label">❌ Not in MVP</span>
+      <div class="not-mvp-items">
+        <span class="not-mvp-item">Marketplace</span>
+        <span class="not-mvp-item">AI Features</span>
+        <span class="not-mvp-item">Complex Analytics</span>
+        <span class="not-mvp-item">Filters &amp; Sorting</span>
+        <span class="not-mvp-item">Social Features</span>
+        <span class="not-mvp-item">Multi-farm Management</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule" style="background:rgba(245,243,239,0.06);"></div>
+
+<!-- ================================================
+     UX PRINCIPLES
+     ================================================ -->
+<section id="ux">
+  <div class="container">
+    <div class="ux-layout">
+      <div class="ux-left fade-up">
+        <div class="section-tag">UX Philosophy</div>
+        <h2>Built for <em class="italic-display">Low Literacy.</em> Loved by All.</h2>
+        <p>Rural India's farmers are intelligent, resourceful people — but many have limited formal literacy and low digital exposure. Every UX decision is made with this reality at the center.</p>
+        <p>No long forms. No English labels. No multi-step flows. Every feature must pass the test: can a farmer with a 4th grade education use this in 30 seconds, in sunlight, while holding a bucket?</p>
+
+        <div class="ux-principles">
+          <div class="uxp fade-up">
+            <div class="uxp-icon">🈺</div>
+            <h4>Hindi &amp; Regional First</h4>
+            <p>UI copy in Hindi, Gujarati, Marathi. No English unless absolutely unavoidable.</p>
+          </div>
+          <div class="uxp fade-up">
+            <div class="uxp-icon">🖼️</div>
+            <h4>Icon-Based UI</h4>
+            <p>Every action communicates via icon + label. Text is supplementary, not primary.</p>
+          </div>
+          <div class="uxp fade-up">
+            <div class="uxp-icon">⌨️</div>
+            <h4>Minimal Typing</h4>
+            <p>Replace text input with selection, voice, or WhatsApp. Tapping beats typing.</p>
+          </div>
+          <div class="uxp fade-up">
+            <div class="uxp-icon">🔲</div>
+            <h4>Large Tap Targets</h4>
+            <p>Buttons and inputs sized for hands that work outdoors. No tiny checkboxes.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="ux-rules fade-up">
+        <div class="ux-rule">
+          <div class="ux-rule-num">R1</div>
+          <div><h4>Max 2–3 Steps Per Action</h4><p>If a farmer needs more than 3 taps to log milk or add a breeding record, we redesign until it's under 3.</p></div>
+        </div>
+        <div class="ux-rule">
+          <div class="ux-rule-num">R2</div>
+          <div><h4>Replace Typing with Selection</h4><p>Dropdowns, toggles, numeric steppers, quick-select chips. Forms are a last resort, not a default.</p></div>
+        </div>
+        <div class="ux-rule">
+          <div class="ux-rule-num">R3</div>
+          <div><h4>Show Immediate Value After Input</h4><p>After logging milk, show today's total and earnings estimate immediately. Instant reward loop drives retention.</p></div>
+        </div>
+        <div class="ux-rule">
+          <div class="ux-rule-num">R4</div>
+          <div><h4>Offline First, Always</h4><p>Every action queues locally and syncs silently. Farmers in 2G/no-signal areas can still log all data without friction.</p></div>
+        </div>
+        <div class="ux-rule">
+          <div class="ux-rule-num">R5</div>
+          <div><h4>Actions Over Data</h4><p>Every screen ends with a clear next step. No data graveyard screens — every view tells the farmer what to do next.</p></div>
+        </div>
+        <div class="ux-rule">
+          <div class="ux-rule-num">R6</div>
+          <div><h4>Sub-60 Second Onboarding</h4><p>First cow added and first milk logged in under 60 seconds from app open. First value delivered before the second minute.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule"></div>
+
+<!-- ================================================
+     DECISION ENGINE
+     ================================================ -->
+<section id="decision">
+  <div class="container">
+    <div class="dec-header fade-up">
+      <div class="section-tag" style="color:rgba(245,243,239,0.3);justify-content:center;">
+        <span style="width:22px;height:1px;background:rgba(245,243,239,0.3);"></span>
+        Product Differentiators
+      </div>
+      <h2 style="color:var(--paper);">A Decision Engine, <em class="italic-display" style="color:rgba(245,243,239,0.4);">Not a Data App.</em></h2>
+      <p>Every feature exists to prompt action, not display numbers. The system watches data — the farmer acts on insights.</p>
+    </div>
+
+    <div class="dec-grid fade-up">
+      <div class="dec-card">
+        <div class="dec-card-icon">🎯</div>
+        <h4>Smart Milk Drop Detection</h4>
+        <p>Tracks per-cattle baseline and fires an alert when yield drops more than 15%. Not a chart — a specific recommendation: "Check Lakshmi's feed or schedule vet."</p>
+      </div>
+      <div class="dec-card">
+        <div class="dec-card-icon">🌡️</div>
+        <h4>Heat Cycle Prediction Engine</h4>
+        <p>Tracks 21-day cycle history per cow and sends a 24-48hr pre-warning. The most underserved and highest-value alert in Indian dairy farming. One miss = ₹8,000+ loss.</p>
+      </div>
+      <div class="dec-card">
+        <div class="dec-card-icon">💬</div>
+        <h4>WhatsApp Native Entry</h4>
+        <p>Farmer types "Ganga ne 8 litre diya" in WhatsApp. System parses, stores the milk record, and replies with today's total. Zero app opens required for daily logging.</p>
+      </div>
+      <div class="dec-card">
+        <div class="dec-card-icon">🤰</div>
+        <h4>Calving Preparation Alerts</h4>
+        <p>"Ganga 3 din mein baccha degi — dawai, saaman aur jagah tayaar rakhein." Specific, actionable, timed. Not a due date notification — a preparation checklist.</p>
+      </div>
+      <div class="dec-card">
+        <div class="dec-card-icon">💰</div>
+        <h4>Real Income Tracking</h4>
+        <p>Weekly and monthly earning summaries tied directly to the data the farmer logged. Makes the value of using the app visible and tangible, driving retention.</p>
+      </div>
+      <div class="dec-card">
+        <div class="dec-card-icon">🗂️</div>
+        <h4>Breeding Data Goldmine</h4>
+        <p>Every heat cycle, pregnancy, calving recorded becomes a scientific dataset. Long-term: breed performance benchmarks, regional heat prediction models, veterinary research data.</p>
+      </div>
+    </div>
+
+    <!-- Action compare -->
+    <div class="action-compare fade-up">
+      <div class="ac-col">
+        <div class="ac-header bad">❌ Data App (Bad)</div>
+        <div class="ac-items">
+          <div class="ac-item bad-i">"Milk: 8L today"</div>
+          <div class="ac-item bad-i">"Breeding: scheduled"</div>
+          <div class="ac-item bad-i">"Health record: updated"</div>
+          <div class="ac-item bad-i">"Cow status: Pregnant"</div>
+        </div>
+      </div>
+      <div class="ac-divider"><div class="ac-arrow">→</div></div>
+      <div class="ac-col">
+        <div class="ac-header good">✓ Decision Engine (Gau Care)</div>
+        <div class="ac-items">
+          <div class="ac-item good-i">"Doodh 20% gira — Lakshmi ka khana ya sehat check karo"</div>
+          <div class="ac-item good-i">"Lakshmi ki heat kal hai — aaj doctor se appointment lo"</div>
+          <div class="ac-item good-i">"Ganga 3 din mein prasav karegi — dawai ready rakhein"</div>
+          <div class="ac-item good-i">"Aaj total 42L doodh hua — ₹1,680 ki kamai"</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule" style="background:rgba(245,243,239,0.06);"></div>
+
+<!-- ================================================
+     DISTRIBUTION
+     ================================================ -->
+<section id="distribution">
+  <div class="container">
+    <div class="dist-header fade-up">
+      <div class="section-tag">Distribution Strategy</div>
+      <h2><em class="italic-display">Distribution</em> &gt; Technology.</h2>
+      <p>The best product fails if it can't reach the farmer. We designed the distribution layer before the feature layer.</p>
+    </div>
+    <div class="dist-grid fade-up">
+      <div class="dist-card">
+        <div class="dist-card-num">01</div>
+        <h4>Vet Doctors</h4>
+        <p>The most trusted source for a farmer making cattle decisions. Vets recommend the app during visits — trust transfers automatically. Zero marketing cost.</p>
+        <div class="dist-card-tag">Organic · High Trust</div>
+      </div>
+      <div class="dist-card">
+        <div class="dist-card-num">02</div>
+        <h4>Dairy Collection Centers</h4>
+        <p>Farmers visit daily to sell milk. Centers can display QR codes, demonstrate the app, and incentivize signups. The highest-frequency farmer touchpoint in existence.</p>
+        <div class="dist-card-tag">Daily Touchpoint</div>
+      </div>
+      <div class="dist-card">
+        <div class="dist-card-num">03</div>
+        <h4>Local Champions</h4>
+        <p>Progressive farmers who adopt early and demonstrate income improvements. Their network trusts them over any ad. One local champion = 20–50 new users via word-of-mouth.</p>
+        <div class="dist-card-tag">Network Effect</div>
+      </div>
+      <div class="dist-card">
+        <div class="dist-card-num">04</div>
+        <h4>WhatsApp Integration</h4>
+        <p>Farmers already use WhatsApp daily. Building the product on top of their existing habit — not asking them to change behavior — is the most powerful distribution lever.</p>
+        <div class="dist-card-tag">Zero Friction Entry</div>
+      </div>
+    </div>
+
+    <!-- WhatsApp spotlight -->
+    <div class="wa-spotlight fade-up">
+      <div class="wa-left">
+        <div class="section-tag" style="color:rgba(245,243,239,0.3);">
+          <span style="width:22px;height:1px;background:rgba(245,243,239,0.3);"></span>
+          WhatsApp Integration
+        </div>
+        <h3>Log Data in <em style="font-style:italic;">One Message.</em></h3>
+        <p>No forms. No navigation. No app opens. Farmers talk to Gau Care on WhatsApp the way they talk to their family. The system understands Hindi, stores the data, and replies in plain language.</p>
+      </div>
+      <div class="wa-right">
+        <div class="wa-msg user">
+          <div class="wa-msg-header user-h">Ramesh Ji</div>
+          Ganga ne aaj 8 liter doodh diya
+        </div>
+        <div class="wa-msg bot">
+          <div class="wa-msg-header bot-h">Gau Care</div>
+          ✅ Ganga ka record save ho gaya — aaj 8L. Is hafte ab tak total: 48L (₹1,920)
+        </div>
+        <div class="wa-msg user">
+          <div class="wa-msg-header user-h">Ramesh Ji</div>
+          Is mahine mera total doodh kitna tha?
+        </div>
+        <div class="wa-msg bot">
+          <div class="wa-msg-header bot-h">Gau Care</div>
+          Ramesh ji, is mahine aapne kul 310 liter doodh becha hai. Kamai: ₹12,400. Aap kya aur jaanna chahte hain?
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule"></div>
+
+<!-- ================================================
+     ARCHITECTURE
+     ================================================ -->
+<section id="architecture">
+  <div class="container">
+    <div class="arch-header fade-up">
+      <div class="section-tag">System Architecture</div>
+      <h2>Built to <em class="italic-display">Scale with India.</em></h2>
+      <p>A clean domain model, offline-first mobile core, and an event-driven backend designed to grow from 500 to 500,000 farmers.</p>
+    </div>
+
+    <!-- Entities -->
+    <div class="arch-entities fade-up">
+      <div class="arch-entity">
+        <div class="arch-entity-icon">👤</div>
+        <div class="arch-entity-name">User</div>
+        <div class="arch-entity-desc">Farmer profile, language pref, auth, device sessions</div>
+      </div>
+      <div class="arch-entity">
+        <div class="arch-entity-icon">🏡</div>
+        <div class="arch-entity-name">Farm</div>
+        <div class="arch-entity-desc">Farm details, geo location, linked cattle, owner</div>
+      </div>
+      <div class="arch-entity">
+        <div class="arch-entity-icon">🐄</div>
+        <div class="arch-entity-name">Cattle</div>
+        <div class="arch-entity-desc">Age, breed, status, two-tier data model (daily + extended)</div>
+      </div>
+      <div class="arch-entity">
+        <div class="arch-entity-icon">🥛</div>
+        <div class="arch-entity-name">MilkEntry</div>
+        <div class="arch-entity-desc">Per-cattle daily logs, yield trends, drop detection</div>
+      </div>
+      <div class="arch-entity">
+        <div class="arch-entity-icon">🌡️</div>
+        <div class="arch-entity-name">BreedingRecord</div>
+        <div class="arch-entity-desc">Heat cycles, inseminations, pregnancies, calvings</div>
+      </div>
+      <div class="arch-entity">
+        <div class="arch-entity-icon">💊</div>
+        <div class="arch-entity-name">HealthRecord</div>
+        <div class="arch-entity-desc">Vaccinations, treatments, vet visits, health alerts</div>
+      </div>
+      <div class="arch-entity">
+        <div class="arch-entity-icon">🔔</div>
+        <div class="arch-entity-name">Reminder</div>
+        <div class="arch-entity-desc">Smart alerts, scheduling engine, delivery via app/WhatsApp</div>
+      </div>
+      <div class="arch-entity">
+        <div class="arch-entity-icon">🛒</div>
+        <div class="arch-entity-name">MarketPlace</div>
+        <div class="arch-entity-desc">(Phase 2) Buy/sell listings, verified by farm data history</div>
+      </div>
+    </div>
+
+    <!-- Flow -->
+    <div class="arch-flow-row fade-up">
+      <div class="arch-node"><div class="arch-node-box">📱</div><div class="arch-node-lbl">React Native<br>Offline Sync</div></div>
+      <div class="arch-arr-bw"><svg viewBox="0 0 32 10" fill="none"><path d="M0 5L24 5M20 2l5 3-5 3" stroke="#888" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+      <div class="arch-node"><div class="arch-node-box">💬</div><div class="arch-node-lbl">WhatsApp<br>API Gateway</div></div>
+      <div class="arch-arr-bw"><svg viewBox="0 0 32 10" fill="none"><path d="M0 5L24 5M20 2l5 3-5 3" stroke="#888" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+      <div class="arch-node"><div class="arch-node-box">⚙️</div><div class="arch-node-lbl">NestJS<br>API Modules</div></div>
+      <div class="arch-arr-bw"><svg viewBox="0 0 32 10" fill="none"><path d="M0 5L24 5M20 2l5 3-5 3" stroke="#888" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+      <div class="arch-node"><div class="arch-node-box">⚡</div><div class="arch-node-lbl">Redis<br>Cache · Queue</div></div>
+      <div class="arch-arr-bw"><svg viewBox="0 0 32 10" fill="none"><path d="M0 5L24 5M20 2l5 3-5 3" stroke="#888" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+      <div class="arch-node"><div class="arch-node-box">🗄️</div><div class="arch-node-lbl">MongoDB +<br>PostgreSQL</div></div>
+      <div class="arch-arr-bw"><svg viewBox="0 0 32 10" fill="none"><path d="M0 5L24 5M20 2l5 3-5 3" stroke="#888" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+      <div class="arch-node"><div class="arch-node-box">🔔</div><div class="arch-node-lbl">Firebase FCM<br>WhatsApp Push</div></div>
+    </div>
+
+    <div class="arch-subgrid fade-up">
+      <div class="arch-sub">
+        <h4>Offline Sync Architecture</h4>
+        <ul>
+          <li>All writes queue locally first (SQLite)</li>
+          <li>Background sync on connectivity restore</li>
+          <li>Conflict resolution via timestamp + server-wins</li>
+          <li>Optimistic UI — no waiting for network</li>
+          <li>Sync status indicator in app header</li>
+        </ul>
+      </div>
+      <div class="arch-sub">
+        <h4>WhatsApp NLP Pipeline</h4>
+        <ul>
+          <li>Incoming message hits webhook endpoint</li>
+          <li>Intent parser identifies action (log, query, alert)</li>
+          <li>Entity extractor finds cow name + quantity</li>
+          <li>Creates DB record, returns Hindi confirmation</li>
+          <li>Supports Hindi, Gujarati, mixed language</li>
+        </ul>
+      </div>
+      <div class="arch-sub">
+        <h4>Smart Alert Engine</h4>
+        <ul>
+          <li>Bull queue cron evaluates cattle data nightly</li>
+          <li>Heat cycle model fires 24–48hr pre-warning</li>
+          <li>Milk drop detector checks 3-day rolling average</li>
+          <li>Calving ETA = pregnancy record + 280-day calc</li>
+          <li>Delivers via FCM push + WhatsApp message</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule"></div>
+
+<!-- ================================================
+     MONETIZATION
+     ================================================ -->
+<section id="monetize">
+  <div class="container">
+    <div class="mono-header fade-up">
+      <div class="section-tag" style="color:rgba(245,243,239,0.3);justify-content:center;">
+        <span style="width:22px;height:1px;background:rgba(245,243,239,0.3);"></span>
+        Monetization Roadmap
+      </div>
+      <h2 style="color:var(--paper);">Data First. <em class="italic-display" style="color:rgba(245,243,239,0.4);">Revenue Second.</em></h2>
+      <p>We don't monetize before we earn trust. Trust is built through consistent daily value — not a paywall.</p>
+    </div>
+    <div class="mono-phases fade-up">
+      <div class="mono-phase">
+        <div class="mono-phase-label">// Phase 1</div>
+        <div class="mono-phase-title">Free. Build Habits.</div>
+        <div class="mono-phase-timeline">Months 0–6</div>
+        <div class="mono-items">
+          <div class="mono-item">Free product — zero cost to farmers</div>
+          <div class="mono-item">Focus 100% on DAU and retention</div>
+          <div class="mono-item">Talk to users weekly, iterate fast</div>
+          <div class="mono-item">Build the data moat</div>
+        </div>
+      </div>
+      <div class="mono-phase">
+        <div class="mono-phase-label">// Phase 2</div>
+        <div class="mono-phase-title">Marketplace + Leads</div>
+        <div class="mono-phase-timeline">Months 6–18</div>
+        <div class="mono-items">
+          <div class="mono-item">Buy/sell cattle listings with verified history</div>
+          <div class="mono-item">Commission on marketplace transactions</div>
+          <div class="mono-item">Lead gen for vet services and feed suppliers</div>
+          <div class="mono-item">Insurance referral commissions</div>
+        </div>
+      </div>
+      <div class="mono-phase">
+        <div class="mono-phase-label">// Phase 3</div>
+        <div class="mono-phase-title">Data + Premium</div>
+        <div class="mono-phase-timeline">18 months+</div>
+        <div class="mono-items">
+          <div class="mono-item">Breeding research data licensing</div>
+          <div class="mono-item">Premium analytics for large dairies</div>
+          <div class="mono-item">Financial services — micro loans, insurance</div>
+          <div class="mono-item">Geo-spatial cattle data intelligence</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Moat cards -->
+    <div class="mono-moat fade-up">
+      <div class="moat-card">
+        <div class="moat-card-icon">🗄️</div>
+        <h4>Data Moat</h4>
+        <p>Breeding history, milk trends, and health records become impossible-to-replicate datasets after 12 months of daily farmer usage.</p>
+      </div>
+      <div class="moat-card">
+        <div class="moat-card-icon">🤝</div>
+        <h4>Trust Network</h4>
+        <p>Verified farmers, vet-certified data, and a track record of accurate alerts create a trust layer that no new entrant can fast-follow.</p>
+      </div>
+      <div class="moat-card">
+        <div class="moat-card-icon">🏘️</div>
+        <h4>Distribution Lock-in</h4>
+        <p>Dairy network partnerships and local champion relationships create a distribution moat that is expensive and slow to replicate.</p>
+      </div>
+      <div class="moat-card">
+        <div class="moat-card-icon">📱</div>
+        <h4>Habit Moat</h4>
+        <p>A farmer who logs milk daily for 90 days won't switch. The switching cost is 3 months of their own data history. That's the strongest moat of all.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule" style="background:rgba(245,243,239,0.06);"></div>
+
+<!-- ================================================
+     METRICS
+     ================================================ -->
+<section id="metrics">
+  <div class="container">
+    <div class="met-header fade-up">
+      <div class="section-tag">Success Metrics</div>
+      <h2>We Track <em class="italic-display">Behavior,</em> Not Vanity.</h2>
+    </div>
+    <div class="met-layout fade-up">
+      <div>
+        <p style="font-size:0.85rem;color:var(--ink-40);font-weight:300;margin-bottom:20px;line-height:1.7;">Most apps optimize for downloads and signups because they're easy to report. We optimize for the metrics that predict real product-market fit: daily usage and retention.</p>
+        <div class="met-track">
+          <div class="met-item">
+            <div class="met-check">✓</div>
+            <div><h4>Daily Active Users (DAU)</h4><p>The primary health metric. If DAU isn't growing, nothing else matters.</p></div>
+          </div>
+          <div class="met-item">
+            <div class="met-check">✓</div>
+            <div><h4>Entries Per User Per Day</h4><p>Are farmers actually logging data daily? Tracks whether the habit is forming.</p></div>
+          </div>
+          <div class="met-item">
+            <div class="met-check">✓</div>
+            <div><h4>7-Day &amp; 30-Day Retention</h4><p>If we can retain for 30 days, we've built a habit. That's the moat forming.</p></div>
+          </div>
+          <div class="met-item">
+            <div class="met-check">✓</div>
+            <div><h4>Reminder Engagement Rate</h4><p>What % of sent alerts result in a logged action? Measures decision engine effectiveness.</p></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:0.85rem;color:var(--ink-40);font-weight:300;margin-bottom:20px;line-height:1.7;">These metrics feel good to report but tell us nothing about whether the product is actually changing farmer behavior or increasing their income.</p>
+        <div class="met-ignore">
+          <div class="met-ign-item">
+            <div class="met-x">✗</div>
+            <div><h4>Total Downloads</h4><p>Download ≠ usage. Farmers may install and never return.</p></div>
+          </div>
+          <div class="met-ign-item">
+            <div class="met-x">✗</div>
+            <div><h4>Total Signups</h4><p>A signup without a cattle added is a vanity metric.</p></div>
+          </div>
+          <div class="met-ign-item">
+            <div class="met-x">✗</div>
+            <div><h4>App Store Rating</h4><p>Early ratings are gamed. Real retention is the only true rating.</p></div>
+          </div>
+          <div class="met-ign-item">
+            <div class="met-x">✗</div>
+            <div><h4>Feature Count</h4><p>More features ≠ more value. Less, used daily, is the entire goal.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule"></div>
+
+<!-- ================================================
+     STANDOUT
+     ================================================ -->
+<section id="standout">
+  <div class="container">
+    <div class="stand-inner">
+      <div class="section-tag" style="justify-content:center;color:rgba(245,243,239,0.3);">
+        <span style="width:22px;height:1px;background:rgba(245,243,239,0.3);"></span>
+        Why This Project Stands Out
+        <span style="width:22px;height:1px;background:rgba(245,243,239,0.3);"></span>
+      </div>
+      <h2 style="color:var(--paper);" class="fade-up">Not a Product. <em style="font-style:italic;color:rgba(245,243,239,0.4);">A Behavior-Changing System.</em></h2>
+      <p class="stand-sub fade-up">The biggest mistake in this space is building a feature-rich product instead of a behavior-changing system.</p>
+
+      <div class="stand-pts-grid fade-up">
+        <div class="stand-pt-card">
+          <h4>Deep Domain Understanding</h4>
+          <p>This is not a generic "farm app." Every feature is grounded in real dairy farmer behavior — missed cycles, milk drop patterns, WhatsApp-native communication. The pain is researched, not assumed.</p>
+        </div>
+        <div class="stand-pt-card">
+          <h4>Distribution Strategy Built First</h4>
+          <p>Most apps fail in India because they rely on ads. This product is designed around vet endorsement, dairy center onboarding, and WhatsApp integration — channels that already have farmer trust.</p>
+        </div>
+        <div class="stand-pt-card">
+          <h4>Action-Oriented Architecture</h4>
+          <p>The product is engineered as a decision engine, not a data store. Every data point collected triggers an action recommendation. The backend alert engine is the core product — the UI is its delivery layer.</p>
+        </div>
+        <div class="stand-pt-card">
+          <h4>Built for Real Constraints</h4>
+          <p>Offline-first sync, Hindi UI, icon-based navigation, low-end Android support, WhatsApp entry — every technical decision was made with 500 million rural Indian farmers as the actual user, not a persona.</p>
+        </div>
+      </div>
+
+      <div class="final-insight fade-up">
+        <div class="final-insight-text">
+          "The winner in this space is not the one with the best features — it's the one who becomes part of the farmer's daily routine."
+        </div>
+        <div class="final-insight-sub">— Core product philosophy, Gau Care founding team</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-rule"></div>
+
+<!-- ================================================
+     CTA
+     ================================================ -->
+<section id="cta">
+  <div class="container">
+    <div class="cta-inner">
+      <div class="cta-eye">
+        <span class="cta-line"></span>
+        Available for New Projects
+        <span class="cta-line"></span>
+      </div>
+      <h2>Want to Build for <em class="italic-display">Real India?</em></h2>
+      <p>If you're building a product for emerging markets, rural users, or any domain that requires genuine user empathy alongside solid engineering — let's talk. I build systems that change behavior, not just manage data.</p>
+      <div class="cta-btns">
+        <a href="mailto:hello@example.com" class="btn-cta-p">
+          Start a Conversation →
+        </a>
+        <a href="#" class="btn-cta-s">
+          View Portfolio
+        </a>
+      </div>
+      <div class="cta-trust">
+        <span class="cta-trust-i">Offline-first architecture</span>
+        <span class="cta-trust-i">Rural UX expertise</span>
+        <span class="cta-trust-i">WhatsApp integrations</span>
+        <span class="cta-trust-i">Production MERN stack</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-inner">
+    <div class="foot-logo">Gau Care — Engineering Case Study</div>
+    <div class="foot-note">MERN · NESTJS · REACT NATIVE · OFFLINE-FIRST · INDIA</div>
+    <div class="foot-badge">Available for Hire</div>
+  </div>
+</footer>
+
+<script>
+// Scroll animations
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);} });
+}, { threshold: 0.06 });
+document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
+
+// Nav shadow
+const nav = document.getElementById('main-nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 10);
+}, { passive: true });
+
+// Counter animation
+const counters = document.querySelectorAll('.hsg-n');
+const co = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(!e.isIntersecting) return;
+    const el = e.target;
+    const raw = el.textContent;
+    const m = raw.match(/\d+(\.\d+)?/);
+    if(!m) return;
+    const target = parseFloat(m[0]);
+    const suffix = raw.replace(m[0],'');
+    const dur = 1400;
+    const t0 = performance.now();
+    function tick(t){
+      const p = Math.min((t-t0)/dur,1);
+      const ease = 1-Math.pow(1-p,3);
+      el.textContent = (m[0].includes('.') ? (target*ease).toFixed(1) : Math.floor(target*ease)) + suffix;
+      if(p<1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+    co.unobserve(el);
+  });
+}, { threshold: 0.5 });
+counters.forEach(el => co.observe(el));
+</script>
+</body>
+</html>
