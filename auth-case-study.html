@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Production Auth Architecture · Hemant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-0: #060608;
+    --bg-1: #0c0c10;
+    --bg-2: #111118;
+    --bg-3: #16161f;
+    --surface: #1a1a26;
+    --surface-2: #20202e;
+    --border: rgba(255,255,255,0.07);
+    --border-bright: rgba(255,255,255,0.13);
+    --blue: #3b82f6;
+    --blue-bright: #60a5fa;
+    --blue-dim: rgba(59,130,246,0.15);
+    --cyan: #22d3ee;
+    --cyan-dim: rgba(34,211,238,0.12);
+    --violet: #8b5cf6;
+    --violet-dim: rgba(139,92,246,0.15);
+    --green: #10b981;
+    --green-dim: rgba(16,185,129,0.12);
+    --orange: #f59e0b;
+    --red: #ef4444;
+    --text-0: #f1f5f9;
+    --text-1: #94a3b8;
+    --text-2: #64748b;
+    --text-3: #475569;
+    --radius: 12px;
+    --radius-lg: 20px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg-0);
+    color: var(--text-0);
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 16px 24px;
+    background: rgba(6,6,8,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text-0);
+    text-decoration: none;
+    letter-spacing: -0.3px;
+  }
+
+  .nav-logo span {
+    color: var(--blue-bright);
+  }
+
+  .nav-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-2);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 120px 0 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 500px;
+    background: radial-gradient(ellipse, rgba(59,130,246,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-glow-2 {
+    position: absolute;
+    top: 40%;
+    left: 20%;
+    width: 400px;
+    height: 300px;
+    background: radial-gradient(ellipse, rgba(139,92,246,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--blue-bright);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border: 1px solid rgba(59,130,246,0.3);
+    background: rgba(59,130,246,0.08);
+    padding: 6px 14px;
+    border-radius: 20px;
+    margin-bottom: 32px;
+  }
+
+  .hero-label::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--blue-bright);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(42px, 7vw, 86px);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -2px;
+    margin-bottom: 28px;
+  }
+
+  .hero h1 .line-1 { color: var(--text-0); }
+  .hero h1 .line-2 {
+    background: linear-gradient(135deg, var(--blue-bright), var(--violet));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero h1 .line-3 { color: var(--text-1); }
+
+  .hero-sub {
+    font-size: 17px;
+    color: var(--text-1);
+    max-width: 600px;
+    line-height: 1.8;
+    margin-bottom: 48px;
+    font-weight: 300;
+  }
+
+  .hero-cta-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--blue);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .btn-primary:hover {
+    background: var(--blue-bright);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 30px rgba(59,130,246,0.35);
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    color: var(--text-1);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--border-bright);
+    color: var(--text-0);
+  }
+
+  /* ── STAT CARDS ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin: 80px 0;
+  }
+
+  .stat-card {
+    background: var(--bg-1);
+    padding: 32px 28px;
+    transition: background 0.2s;
+  }
+
+  .stat-card:hover { background: var(--bg-2); }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--text-0), var(--text-1));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-2);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 400;
+  }
+
+  .stat-card.blue .stat-num { background: linear-gradient(135deg, var(--blue-bright), var(--cyan)); -webkit-background-clip: text; background-clip: text; }
+  .stat-card.violet .stat-num { background: linear-gradient(135deg, var(--violet), var(--blue-bright)); -webkit-background-clip: text; background-clip: text; }
+  .stat-card.green .stat-num { background: linear-gradient(135deg, var(--green), var(--cyan)); -webkit-background-clip: text; background-clip: text; }
+  .stat-card.orange .stat-num { background: linear-gradient(135deg, var(--orange), #f97316); -webkit-background-clip: text; background-clip: text; }
+
+  /* ── SECTION HEADERS ── */
+  section { padding: 100px 0; position: relative; z-index: 1; }
+
+  .section-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--blue-bright);
+    border-left: 2px solid var(--blue);
+    padding-left: 10px;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1.15;
+    margin-bottom: 16px;
+    color: var(--text-0);
+  }
+
+  .section-sub {
+    font-size: 16px;
+    color: var(--text-1);
+    max-width: 560px;
+    line-height: 1.8;
+    font-weight: 300;
+  }
+
+  /* ── FLOW SECTION ── */
+  .flow-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 56px;
+  }
+
+  .flow-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .flow-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--blue), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .flow-card:hover {
+    border-color: var(--border-bright);
+    transform: translateY(-2px);
+  }
+
+  .flow-card:hover::before { opacity: 1; }
+
+  .flow-card.violet-accent::before {
+    background: linear-gradient(90deg, transparent, var(--violet), transparent);
+  }
+
+  .flow-card.cyan-accent::before {
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  }
+
+  .flow-card.green-accent::before {
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+  }
+
+  .flow-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--blue-bright);
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+  }
+
+  .flow-card.violet-accent .flow-number { color: var(--violet); }
+  .flow-card.cyan-accent .flow-number { color: var(--cyan); }
+  .flow-card.green-accent .flow-number { color: var(--green); }
+
+  .flow-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text-0);
+    letter-spacing: -0.3px;
+  }
+
+  .flow-card p {
+    font-size: 14px;
+    color: var(--text-1);
+    line-height: 1.75;
+    font-weight: 300;
+  }
+
+  .flow-steps {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-2);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 400;
+  }
+
+  .flow-step::before {
+    content: '→';
+    color: var(--blue-bright);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .flow-card.violet-accent .flow-step::before { color: var(--violet); }
+  .flow-card.cyan-accent .flow-step::before { color: var(--cyan); }
+  .flow-card.green-accent .flow-step::before { color: var(--green); }
+
+  /* ── ARCHITECTURE ── */
+  .arch-section {
+    background: var(--bg-1);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .arch-diagram {
+    margin-top: 56px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 40px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .arch-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .arch-node {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    border: 1px solid transparent;
+  }
+
+  .arch-node.client { background: var(--blue-dim); border-color: rgba(59,130,246,0.3); color: var(--blue-bright); }
+  .arch-node.guard { background: var(--violet-dim); border-color: rgba(139,92,246,0.3); color: var(--violet); }
+  .arch-node.service { background: var(--cyan-dim); border-color: rgba(34,211,238,0.25); color: var(--cyan); }
+  .arch-node.store { background: var(--green-dim); border-color: rgba(16,185,129,0.3); color: var(--green); }
+  .arch-node.firebase { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.3); color: var(--orange); }
+
+  .arch-arrow {
+    color: var(--text-3);
+    font-size: 14px;
+  }
+
+  .arch-label {
+    font-size: 10px;
+    color: var(--text-3);
+    letter-spacing: 0.5px;
+  }
+
+  /* ── SECURITY GRID ── */
+  .security-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 56px;
+  }
+
+  .sec-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    transition: all 0.2s;
+  }
+
+  .sec-card:hover {
+    border-color: var(--border-bright);
+    background: var(--bg-3);
+  }
+
+  .sec-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+
+  .sec-icon.blue { background: var(--blue-dim); }
+  .sec-icon.violet { background: var(--violet-dim); }
+  .sec-icon.cyan { background: var(--cyan-dim); }
+  .sec-icon.green { background: var(--green-dim); }
+  .sec-icon.orange { background: rgba(245,158,11,0.1); }
+  .sec-icon.red { background: rgba(239,68,68,0.1); }
+
+  .sec-card h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-0);
+    margin-bottom: 8px;
+  }
+
+  .sec-card p {
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.7;
+  }
+
+  /* ── EDGE CASES ── */
+  .edge-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 56px;
+  }
+
+  .edge-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    transition: all 0.2s;
+  }
+
+  .edge-card:hover {
+    border-color: var(--border-bright);
+    transform: translateX(4px);
+  }
+
+  .edge-indicator {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    flex-shrink: 0;
+    margin-top: 6px;
+    box-shadow: 0 0 8px rgba(16,185,129,0.5);
+  }
+
+  .edge-text h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-0);
+    margin-bottom: 4px;
+  }
+
+  .edge-text p {
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.6;
+  }
+
+  /* ── STACK ── */
+  .stack-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 48px;
+  }
+
+  .stack-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-1);
+    transition: all 0.2s;
+  }
+
+  .stack-pill:hover {
+    border-color: var(--blue);
+    color: var(--text-0);
+    background: var(--blue-dim);
+  }
+
+  .stack-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+  }
+
+  /* ── TOKEN FLOW ── */
+  .token-flow {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 36px;
+    margin-top: 56px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .token-flow-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 28px;
+  }
+
+  .token-steps {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    position: relative;
+  }
+
+  .token-steps::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, var(--blue-dim), rgba(59,130,246,0.3), var(--blue-dim));
+  }
+
+  .token-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .token-step-dot {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--bg-3);
+    border: 1px solid var(--border-bright);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .token-step-dot.active {
+    background: var(--blue-dim);
+    border-color: var(--blue);
+    box-shadow: 0 0 20px rgba(59,130,246,0.25);
+  }
+
+  .token-step-label {
+    font-size: 10px;
+    color: var(--text-2);
+    letter-spacing: 0.5px;
+    line-height: 1.4;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 0;
+  }
+
+  /* ── CTA ── */
+  .cta-section {
+    padding: 120px 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(59,130,246,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cta-inner {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cta-inner h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(32px, 5vw, 58px);
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    margin-bottom: 24px;
+  }
+
+  .cta-inner p {
+    font-size: 17px;
+    color: var(--text-1);
+    max-width: 480px;
+    margin: 0 auto 48px;
+    line-height: 1.8;
+    font-weight: 300;
+  }
+
+  .cta-btns {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .footer-left {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-3);
+  }
+
+  .footer-right {
+    display: flex;
+    gap: 24px;
+  }
+
+  .footer-right a {
+    font-size: 13px;
+    color: var(--text-2);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-right a:hover { color: var(--text-0); }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: var(--bg-0);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    overflow-x: auto;
+    margin-top: 24px;
+  }
+
+  .code-line { display: block; }
+  .code-key { color: var(--blue-bright); }
+  .code-val { color: var(--green); }
+  .code-comment { color: var(--text-3); }
+  .code-string { color: var(--orange); }
+
+  /* ── ENDPOINT TABLE ── */
+  .endpoint-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 40px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+
+  .endpoint-table th {
+    text-align: left;
+    padding: 12px 16px;
+    color: var(--text-3);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+  }
+
+  .endpoint-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-1);
+    vertical-align: middle;
+  }
+
+  .endpoint-table tr:hover td {
+    background: var(--bg-2);
+  }
+
+  .method {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .method.post { background: rgba(59,130,246,0.15); color: var(--blue-bright); }
+  .method.get { background: var(--green-dim); color: var(--green); }
+  .method.delete { background: rgba(239,68,68,0.1); color: var(--red); }
+
+  .rate-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(245,158,11,0.1);
+    color: var(--orange);
+    border: 1px solid rgba(245,158,11,0.2);
+  }
+
+  .skip-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(16,185,129,0.1);
+    color: var(--green);
+    border: 1px solid rgba(16,185,129,0.2);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .flow-grid { grid-template-columns: 1fr; }
+    .security-grid { grid-template-columns: repeat(2, 1fr); }
+    .edge-grid { grid-template-columns: 1fr; }
+    .token-steps { grid-template-columns: 1fr; gap: 20px; }
+    .token-steps::before { display: none; }
+    .arch-row { gap: 8px; }
+  }
+
+  @media (max-width: 480px) {
+    .stats-row { grid-template-columns: 1fr; }
+    .security-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero > * { animation: fadeUp 0.7s ease forwards; }
+  .hero .container > *:nth-child(2) { animation-delay: 0.1s; }
+  .hero .container > *:nth-child(3) { animation-delay: 0.2s; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">auth<span>.arch</span></a>
+    <span class="nav-badge">production-grade · nestjs · firebase</span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-glow-2"></div>
+  <div class="container">
+    <div class="hero-label">Case Study · Authentication Architecture</div>
+    <h1>
+      <span class="line-1">Production Auth</span><br>
+      <span class="line-2">Built to Scale</span><br>
+      <span class="line-3">Zero Compromises</span>
+    </h1>
+    <p class="hero-sub">
+      A complete OTP-based authentication system engineered for 1000+ concurrent users. Multi-device sessions, refresh token rotation, Redis caching, rate limiting, audit trails — every edge case handled.
+    </p>
+    <div class="hero-cta-row">
+      <a href="#architecture" class="btn-primary">View Architecture →</a>
+      <a href="#contact" class="btn-ghost">Work With Me</a>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card blue">
+        <div class="stat-num">1000+</div>
+        <div class="stat-label">Concurrent Users</div>
+      </div>
+      <div class="stat-card violet">
+        <div class="stat-num">5</div>
+        <div class="stat-label">Simultaneous Devices</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-num">&lt;1ms</div>
+        <div class="stat-label">Session Validation</div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-num">17</div>
+        <div class="stat-label">Edge Cases Handled</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- AUTH FLOWS -->
+<section id="flows">
+  <div class="container">
+    <div class="section-tag">01 / Auth Flows</div>
+    <h2 class="section-title">Four Core Flows,<br>Zero Gaps</h2>
+    <p class="section-sub">Every authentication path is covered — from first OTP to token rotation to admin-level revocation.</p>
+
+    <div class="flow-grid">
+      <div class="flow-card">
+        <div class="flow-number">FLOW_01 · REGISTER</div>
+        <h3>Registration</h3>
+        <p>Phone-first onboarding with Firebase Identity Toolkit. User created on first successful OTP verification.</p>
+        <div class="flow-steps">
+          <div class="flow-step">POST /auth/get-otp → rate limit check</div>
+          <div class="flow-step">Firebase sends SMS via Identity Toolkit</div>
+          <div class="flow-step">sessionInfo stored in Redis (10min TTL)</div>
+          <div class="flow-step">POST /auth/verify-otp → user created</div>
+          <div class="flow-step">Session + token pair generated</div>
+        </div>
+      </div>
+
+      <div class="flow-card violet-accent">
+        <div class="flow-number">FLOW_02 · LOGIN</div>
+        <h3>Multi-Device Login</h3>
+        <p>Same phone can authenticate from up to 5 devices simultaneously. Each device gets its own session and token family.</p>
+        <div class="flow-steps">
+          <div class="flow-step">deviceId (UUID) sent from client</div>
+          <div class="flow-step">Existing session for device revoked first</div>
+          <div class="flow-step">New session created with device context</div>
+          <div class="flow-step">Access token (15m) + Refresh token (30d)</div>
+          <div class="flow-step">Session cached in Redis immediately</div>
+        </div>
+      </div>
+
+      <div class="flow-card cyan-accent">
+        <div class="flow-number">FLOW_03 · REFRESH</div>
+        <h3>Token Rotation</h3>
+        <p>Every refresh invalidates the old token and issues a new pair atomically. Replay attacks trigger full family revocation.</p>
+        <div class="flow-steps">
+          <div class="flow-step">Old token hash matched in Firestore</div>
+          <div class="flow-step">Firestore transaction — atomic rotation</div>
+          <div class="flow-step">usedAt set → new token created</div>
+          <div class="flow-step">Reuse detected → entire family revoked</div>
+          <div class="flow-step">New access + refresh pair returned</div>
+        </div>
+      </div>
+
+      <div class="flow-card green-accent">
+        <div class="flow-number">FLOW_04 · LOGOUT</div>
+        <h3>Single + All Devices</h3>
+        <p>Logout from current device or all devices simultaneously. Admin can also revoke any specific session remotely.</p>
+        <div class="flow-steps">
+          <div class="flow-step">Session deleted from Redis immediately</div>
+          <div class="flow-step">All tokens for session revoked in Firestore</div>
+          <div class="flow-step">logout-all → batch revoke all sessions</div>
+          <div class="flow-step">Admin revoke → specific session + tokens</div>
+          <div class="flow-step">Audit log written for every action</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ARCHITECTURE -->
+<section id="architecture" class="arch-section">
+  <div class="container">
+    <div class="section-tag">02 / Architecture</div>
+    <h2 class="section-title">Request Flow</h2>
+    <p class="section-sub">Every authenticated request passes through layered validation — throttle, JWT, session cache, then business logic.</p>
+
+    <div class="arch-diagram">
+      <div class="arch-row">
+        <span class="arch-node client">📱 Client</span>
+        <span class="arch-arrow">──</span>
+        <span class="arch-node guard">ThrottlerGuard</span>
+        <span class="arch-arrow">──</span>
+        <span class="arch-node guard">JwtAuthGuard</span>
+        <span class="arch-arrow">──</span>
+        <span class="arch-node guard">RolesGuard</span>
+        <span class="arch-arrow">──</span>
+        <span class="arch-node service">Controller</span>
+      </div>
+      <div style="height: 16px;"></div>
+      <div class="arch-row">
+        <span class="arch-label" style="padding-left: 20px;">OTP flow</span>
+        <span class="arch-arrow" style="color: transparent;">──</span>
+        <span class="arch-node firebase">Firebase Auth</span>
+        <span class="arch-arrow">──</span>
+        <span class="arch-node store">Redis (sessionInfo)</span>
+        <span class="arch-arrow">──</span>
+        <span class="arch-node service">OtpService</span>
+      </div>
+      <div style="height: 16px;"></div>
+      <div class="arch-row">
+        <span class="arch-label" style="padding-left: 20px;">Session check</span>
+        <span class="arch-arrow" style="color: transparent;">──</span>
+        <span class="arch-node store">Redis Cache</span>
+        <span class="arch-arrow">──</span>
+        <span class="arch-label">miss?</span>
+        <span class="arch-arrow">──</span>
+        <span class="arch-node store">Firestore</span>
+        <span class="arch-arrow">──</span>
+        <span class="arch-node service">SessionService</span>
+      </div>
+      <div style="height: 16px;"></div>
+      <div class="arch-row">
+        <span class="arch-label" style="padding-left: 20px;">Token rotation</span>
+        <span class="arch-arrow" style="color: transparent;">──</span>
+        <span class="arch-node store">Firestore TX</span>
+        <span class="arch-arrow">──</span>
+        <span class="arch-label">atomic write</span>
+        <span class="arch-arrow">──</span>
+        <span class="arch-node service">TokenService</span>
+        <span class="arch-arrow">──</span>
+        <span class="arch-node service">JwtService</span>
+      </div>
+    </div>
+
+    <!-- Token rotation flow -->
+    <div class="token-flow">
+      <div class="token-flow-title">Refresh Token Rotation Chain</div>
+      <div class="token-steps">
+        <div class="token-step">
+          <div class="token-step-dot active">🔑</div>
+          <div class="token-step-label">Token A<br><span style="color:var(--green)">issued</span></div>
+        </div>
+        <div class="token-step">
+          <div class="token-step-dot active">🔄</div>
+          <div class="token-step-label">Refresh<br><span style="color:var(--blue-bright)">requested</span></div>
+        </div>
+        <div class="token-step">
+          <div class="token-step-dot active">✅</div>
+          <div class="token-step-label">Token A<br><span style="color:var(--orange)">usedAt set</span></div>
+        </div>
+        <div class="token-step">
+          <div class="token-step-dot active">🆕</div>
+          <div class="token-step-label">Token B<br><span style="color:var(--green)">same family</span></div>
+        </div>
+        <div class="token-step">
+          <div class="token-step-dot" style="background:rgba(239,68,68,0.1);border-color:var(--red)">⚠️</div>
+          <div class="token-step-label">Replay A<br><span style="color:var(--red)">family revoked</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECURITY -->
+<section id="security">
+  <div class="container">
+    <div class="section-tag">03 / Security Layer</div>
+    <h2 class="section-title">Defense in Depth</h2>
+    <p class="section-sub">Security built into every layer — not bolted on after the fact.</p>
+
+    <div class="security-grid">
+      <div class="sec-card">
+        <div class="sec-icon blue">🔐</div>
+        <h4>JWT + Session Hybrid</h4>
+        <p>Stateless JWT for performance, session store for immediate revocation. Best of both worlds.</p>
+      </div>
+      <div class="sec-card">
+        <div class="sec-icon violet">🔁</div>
+        <h4>Token Family Rotation</h4>
+        <p>Tokens share a family UUID. Reuse of a consumed token triggers full family revocation — no stolen token can survive.</p>
+      </div>
+      <div class="sec-card">
+        <div class="sec-icon cyan">🛡️</div>
+        <h4>Redis Rate Limiting</h4>
+        <p>Sliding window per phone + per IP. OTPs capped at 5/hour per number. Survives restarts and multi-instance deploys.</p>
+      </div>
+      <div class="sec-card">
+        <div class="sec-icon green">🔒</div>
+        <h4>Token Hashing</h4>
+        <p>Raw refresh tokens never stored. SHA-256 hashed before persistence — database leak can't expose live tokens.</p>
+      </div>
+      <div class="sec-card">
+        <div class="sec-icon orange">⏱️</div>
+        <h4>Progressive Lockout</h4>
+        <p>5 failed OTP attempts triggers a 15-minute account lock. Tracked in Firestore, checked before every OTP send.</p>
+      </div>
+      <div class="sec-card">
+        <div class="sec-icon red">👮</div>
+        <h4>RBAC + Admin Revoke</h4>
+        <p>Role-based guards on every route. Admins can revoke any specific user session in real-time without restart.</p>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <span class="code-comment">// Refresh token stored — hash only, never raw</span><br>
+      <span class="code-line"><span class="code-key">const</span> rawToken = <span class="code-val">randomBytes</span>(<span class="code-string">40</span>).toString(<span class="code-string">'hex'</span>);</span><br>
+      <span class="code-line"><span class="code-key">const</span> tokenHash = <span class="code-val">createHash</span>(<span class="code-string">'sha256'</span>).update(rawToken).digest(<span class="code-string">'hex'</span>);</span><br>
+      <br>
+      <span class="code-comment">// Rotation — atomic Firestore transaction</span><br>
+      <span class="code-line"><span class="code-key">await</span> db.<span class="code-val">runTransaction</span>(<span class="code-key">async</span> (tx) => {</span><br>
+      <span class="code-line">  <span class="code-key">if</span> (old.usedAt !== <span class="code-key">null</span>) <span class="code-key">throw new</span> <span class="code-val">TokenReuseException</span>(old.family);</span><br>
+      <span class="code-line">  tx.<span class="code-val">update</span>(oldRef, { usedAt: <span class="code-val">new Date</span>() });</span><br>
+      <span class="code-line">  tx.<span class="code-val">set</span>(newRef, newToken); <span class="code-comment">// atomic</span></span><br>
+      <span class="code-line">});</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- EDGE CASES -->
+<section id="edge-cases">
+  <div class="container">
+    <div class="section-tag">04 / Edge Cases</div>
+    <h2 class="section-title">Every Edge Case,<br>Handled</h2>
+    <p class="section-sub">Production systems fail in unexpected ways. These are anticipated and resolved before they can surface.</p>
+
+    <div class="edge-grid">
+      <div class="edge-card">
+        <div class="edge-indicator"></div>
+        <div class="edge-text">
+          <h4>5 Simultaneous Devices</h4>
+          <p>Each device has its own session + token family. Logging in from a new device revokes the old session for that device only.</p>
+        </div>
+      </div>
+      <div class="edge-card">
+        <div class="edge-indicator"></div>
+        <div class="edge-text">
+          <h4>Token Stolen but Valid</h4>
+          <p>Admin revokes the session. Redis key deleted → next request misses cache → Firestore shows isActive: false → 401 immediately.</p>
+        </div>
+      </div>
+      <div class="edge-card">
+        <div class="edge-indicator"></div>
+        <div class="edge-text">
+          <h4>OTP Resend Abuse</h4>
+          <p>Sliding window counter per phone + IP in Redis. 5 OTPs/hour per number, 15 per IP. Prevents SMS bill attacks.</p>
+        </div>
+      </div>
+      <div class="edge-card">
+        <div class="edge-indicator"></div>
+        <div class="edge-text">
+          <h4>Concurrent Refresh Requests</h4>
+          <p>Firestore transaction locks the old token. Second concurrent request finds usedAt already set → TokenReuseException → family revoked.</p>
+        </div>
+      </div>
+      <div class="edge-card">
+        <div class="edge-indicator"></div>
+        <div class="edge-text">
+          <h4>User Banned with Active Session</h4>
+          <p>Ban check happens in requestOtp. Active sessions blocked on next JWT validation when session service checks user status.</p>
+        </div>
+      </div>
+      <div class="edge-card">
+        <div class="edge-indicator"></div>
+        <div class="edge-text">
+          <h4>Firebase OTP Succeeds, DB Fails</h4>
+          <p>OTP session cleared from Redis. User must request a new OTP. No orphaned tokens or partial state left behind.</p>
+        </div>
+      </div>
+      <div class="edge-card">
+        <div class="edge-indicator"></div>
+        <div class="edge-text">
+          <h4>Clock Drift on Token Expiry</h4>
+          <p>JWT library handles signature validation with standard exp claim. Session store uses server timestamps exclusively.</p>
+        </div>
+      </div>
+      <div class="edge-card">
+        <div class="edge-indicator"></div>
+        <div class="edge-text">
+          <h4>Guest + Logged-in Same Endpoint</h4>
+          <p>OptionalAuthGuard checks Bearer token first, then x-guest-session-id header. Both paths validated. Neither present → 401.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ENDPOINTS -->
+<section id="endpoints">
+  <div class="container">
+    <div class="section-tag">05 / API Endpoints</div>
+    <h2 class="section-title">Complete API Surface</h2>
+    <p class="section-sub">Full Swagger documentation with payload schemas, response types, and security decorators on every route.</p>
+
+    <table class="endpoint-table">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Endpoint</th>
+          <th>Auth</th>
+          <th>Throttle</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="method post">POST</span></td>
+          <td>/auth/get-otp</td>
+          <td style="color:var(--text-3)">—</td>
+          <td><span class="rate-badge">5/min</span></td>
+        </tr>
+        <tr>
+          <td><span class="method post">POST</span></td>
+          <td>/auth/verify-otp</td>
+          <td style="color:var(--text-3)">—</td>
+          <td><span class="rate-badge">10/min</span></td>
+        </tr>
+        <tr>
+          <td><span class="method post">POST</span></td>
+          <td>/auth/refresh</td>
+          <td style="color:var(--blue-bright)">JWT</td>
+          <td><span class="rate-badge">30/min</span></td>
+        </tr>
+        <tr>
+          <td><span class="method post">POST</span></td>
+          <td>/auth/logout</td>
+          <td style="color:var(--blue-bright)">JWT</td>
+          <td><span class="skip-badge">skip</span></td>
+        </tr>
+        <tr>
+          <td><span class="method post">POST</span></td>
+          <td>/auth/logout-all</td>
+          <td style="color:var(--blue-bright)">JWT</td>
+          <td><span class="skip-badge">skip</span></td>
+        </tr>
+        <tr>
+          <td><span class="method get">GET</span></td>
+          <td>/auth/me</td>
+          <td style="color:var(--blue-bright)">JWT</td>
+          <td><span class="skip-badge">skip</span></td>
+        </tr>
+        <tr>
+          <td><span class="method post">POST</span></td>
+          <td>/auth/resend-otp</td>
+          <td style="color:var(--text-3)">—</td>
+          <td><span class="rate-badge">3/min</span></td>
+        </tr>
+        <tr>
+          <td><span class="method delete">DELETE</span></td>
+          <td>/auth/account</td>
+          <td style="color:var(--blue-bright)">JWT</td>
+          <td><span class="rate-badge">3/min</span></td>
+        </tr>
+        <tr>
+          <td><span class="method delete">DELETE</span></td>
+          <td>/auth/admin/users/:id/sessions/:sid</td>
+          <td style="color:var(--violet)">ADMIN</td>
+          <td><span class="rate-badge">20/min</span></td>
+        </tr>
+        <tr>
+          <td><span class="method get">GET</span></td>
+          <td>/auth/admin/users/:id/sessions</td>
+          <td style="color:var(--violet)">ADMIN</td>
+          <td><span class="skip-badge">skip</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- STACK -->
+<section id="stack">
+  <div class="container">
+    <div class="section-tag">06 / Tech Stack</div>
+    <h2 class="section-title">Production Stack</h2>
+    <p class="section-sub">Every tool chosen for performance, reliability, and developer experience at scale.</p>
+
+    <div class="stack-row">
+      <div class="stack-pill"><span class="stack-dot" style="background:#e0234e"></span>NestJS</div>
+      <div class="stack-pill"><span class="stack-dot" style="background:#3178c6"></span>TypeScript</div>
+      <div class="stack-pill"><span class="stack-dot" style="background:#f5a623"></span>Firebase Firestore</div>
+      <div class="stack-pill"><span class="stack-dot" style="background:#f5a623"></span>Firebase Auth</div>
+      <div class="stack-pill"><span class="stack-dot" style="background:#dc382d"></span>Redis</div>
+      <div class="stack-pill"><span class="stack-dot" style="background:#3b82f6"></span>JWT / Passport</div>
+      <div class="stack-pill"><span class="stack-dot" style="background:#85ea2d"></span>class-validator</div>
+      <div class="stack-pill"><span class="stack-dot" style="background:#6366f1"></span>Swagger / OpenAPI</div>
+      <div class="stack-pill"><span class="stack-dot" style="background:#10b981"></span>EventEmitter2</div>
+      <div class="stack-pill"><span class="stack-dot" style="background:#8b5cf6"></span>@nestjs/throttler</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CTA -->
+<section id="contact" class="cta-section">
+  <div class="cta-glow"></div>
+  <div class="container">
+    <div class="cta-inner">
+      <h2>
+        Need Auth This<br>
+        <span style="background:linear-gradient(135deg,var(--blue-bright),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Solid?</span>
+      </h2>
+      <p>
+        I build production-grade backend systems for startups and SaaS products. Authentication, file pipelines, real-time systems — engineered to scale.
+      </p>
+      <div class="cta-btns">
+        <a href="https://linkedin.com" class="btn-primary">Connect on LinkedIn →</a>
+        <a href="mailto:hello@example.com" class="btn-ghost">Send an Email</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <span class="footer-left">built with NestJS · Firebase · Redis</span>
+      <div class="footer-right">
+        <a href="#flows">Flows</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#security">Security</a>
+        <a href="#endpoints">API</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
