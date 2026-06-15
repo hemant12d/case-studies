@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Auth Security — Deep Engineering Analysis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #080A0F;
+    --surface:   #0F1117;
+    --card:      #141820;
+    --border:    #1E2433;
+    --border-hi: #2A3245;
+    --amber:     #F5A623;
+    --amber-dim: #C4841B;
+    --teal:      #00D4C8;
+    --teal-dim:  #009B91;
+    --red:       #FF4757;
+    --red-dim:   #C0392B;
+    --green:     #2ECC71;
+    --purple:    #9B59B6;
+    --text-hi:   #E8EAF0;
+    --text-mid:  #A0A8BC;
+    --text-lo:   #5A6070;
+    --mono:      'JetBrains Mono', monospace;
+    --sans:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-mid);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ─────────────────────────────────────────── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(8,10,15,0.9);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-brand {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--teal);
+    letter-spacing: 0.05em;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .nav-brand::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--teal);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--teal);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .nav-links {
+    display: flex; gap: 2rem;
+    list-style: none;
+  }
+  .nav-links a {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-lo);
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text-hi); }
+
+  /* ── HERO ─────────────────────────────────────────── */
+  .hero {
+    min-height: 100vh;
+    display: flex; align-items: center;
+    padding: 80px 2rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-grid {
+    max-width: 1200px; margin: 0 auto; width: 100%;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 4rem; align-items: center;
+  }
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--amber);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .hero-eyebrow::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--amber-dim), transparent);
+  }
+  .hero h1 {
+    font-family: var(--sans);
+    font-size: clamp(2.4rem, 4vw, 3.4rem);
+    font-weight: 700;
+    color: var(--text-hi);
+    line-height: 1.12;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 span { color: var(--amber); }
+  .hero-desc {
+    font-size: 16px;
+    color: var(--text-mid);
+    line-height: 1.75;
+    margin-bottom: 2.5rem;
+    max-width: 480px;
+  }
+  .hero-meta {
+    display: flex; flex-wrap: wrap; gap: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .meta-chip {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+  .meta-chip.author { background: rgba(0,212,200,0.1); color: var(--teal); border: 1px solid rgba(0,212,200,0.2); }
+  .meta-chip.date   { background: rgba(245,166,35,0.1); color: var(--amber); border: 1px solid rgba(245,166,35,0.2); }
+  .meta-chip.status { background: rgba(46,204,113,0.1); color: var(--green); border: 1px solid rgba(46,204,113,0.2); }
+  .hero-badges {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+  }
+  .badge {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 12px;
+    color: var(--text-lo);
+  }
+  .badge-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .badge-dot.red    { background: var(--red);    box-shadow: 0 0 6px var(--red); }
+  .badge-dot.amber  { background: var(--amber);  box-shadow: 0 0 6px var(--amber); }
+  .badge-dot.teal   { background: var(--teal);   box-shadow: 0 0 6px var(--teal); }
+  .badge-dot.purple { background: var(--purple); box-shadow: 0 0 6px var(--purple); }
+
+  /* ── BLAST RADIUS DIAGRAM ─────────────────────────── */
+  .blast-diagram {
+    display: flex; justify-content: center; align-items: center;
+    position: relative; height: 460px;
+  }
+  .blast-diagram svg { width: 100%; max-width: 440px; height: 440px; }
+  .ring-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    fill: var(--text-mid);
+    letter-spacing: 0.05em;
+  }
+  .ring-role {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    fill: var(--text-hi);
+  }
+  .ring-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    fill: var(--text-lo);
+  }
+
+  /* ── LAYOUT WRAPPER ──────────────────────────────── */
+  .layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    gap: 4rem;
+    align-items: start;
+  }
+
+  /* ── SIDEBAR ─────────────────────────────────────── */
+  .sidebar {
+    position: sticky; top: 76px;
+    padding: 1.5rem 0;
+  }
+  .sidebar-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-lo);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    padding-left: 1rem;
+    border-left: 2px solid var(--border);
+  }
+  .sidebar-nav { list-style: none; }
+  .sidebar-nav li { margin-bottom: 2px; }
+  .sidebar-nav a {
+    display: block;
+    font-family: var(--mono); font-size: 12px;
+    color: var(--text-lo);
+    text-decoration: none;
+    padding: 5px 1rem;
+    border-left: 2px solid var(--border);
+    transition: all 0.2s;
+    border-radius: 0 4px 4px 0;
+  }
+  .sidebar-nav a:hover,
+  .sidebar-nav a.active {
+    color: var(--teal); border-left-color: var(--teal);
+    background: rgba(0,212,200,0.06);
+  }
+  .sidebar-nav .sub a {
+    padding-left: 1.6rem; font-size: 11px;
+    color: var(--text-lo);
+  }
+  .sidebar-section { margin-top: 1.5rem; }
+  .severity-legend {
+    margin-top: 2rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+  .sev-title {
+    font-family: var(--mono); font-size: 10px;
+    color: var(--text-lo); letter-spacing: 0.1em;
+    text-transform: uppercase; margin-bottom: 0.75rem;
+  }
+  .sev-item {
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--text-lo); margin-bottom: 6px;
+  }
+  .sev-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+  /* ── MAIN CONTENT ────────────────────────────────── */
+  .main { padding: 2rem 0 6rem; }
+
+  section { margin-bottom: 5rem; }
+
+  .section-header {
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .section-num {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--text-lo); letter-spacing: 0.1em;
+    background: var(--card); border: 1px solid var(--border);
+    padding: 3px 8px; border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .section-title {
+    font-family: var(--sans); font-size: 1.5rem;
+    font-weight: 600; color: var(--text-hi);
+    letter-spacing: -0.02em;
+  }
+
+  /* ── ROLE MODEL ─────────────────────────────────── */
+  .role-pyramid {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem;
+    overflow: hidden; position: relative;
+  }
+  .pyramid-row {
+    display: flex; align-items: stretch; margin-bottom: 8px;
+  }
+  .pyramid-indent { flex-shrink: 0; }
+  .pyramid-block {
+    flex: 1; border-radius: 8px; padding: 0.9rem 1.2rem;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 1rem;
+  }
+  .pyramid-block-left { display: flex; align-items: center; gap: 12px; }
+  .pblock-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+  }
+  .pblock-name {
+    font-family: var(--mono); font-size: 14px; font-weight: 700;
+    color: var(--text-hi); letter-spacing: 0.03em;
+    margin-bottom: 2px;
+  }
+  .pblock-desc { font-size: 12px; color: var(--text-lo); }
+  .pblock-risk {
+    font-family: var(--mono); font-size: 10px;
+    padding: 3px 8px; border-radius: 4px; white-space: nowrap;
+    align-self: flex-start;
+  }
+
+  .pb-tech    { background: rgba(255,71,87,0.12); border: 1px solid rgba(255,71,87,0.25); }
+  .pb-super   { background: rgba(245,166,35,0.10); border: 1px solid rgba(245,166,35,0.2); }
+  .pb-admin   { background: rgba(0,212,200,0.08); border: 1px solid rgba(0,212,200,0.18); }
+  .pb-kiosk   { background: rgba(155,89,182,0.08); border: 1px solid rgba(155,89,182,0.18); }
+  .pb-user    { background: rgba(90,96,112,0.2); border: 1px solid var(--border); }
+  .pb-tech  .pblock-name  { color: var(--red); }
+  .pb-super .pblock-name  { color: var(--amber); }
+  .pb-admin .pblock-name  { color: var(--teal); }
+  .pb-kiosk .pblock-name  { color: var(--purple); }
+  .pb-tech  .pblock-icon  { background: rgba(255,71,87,0.15); }
+  .pb-super .pblock-icon  { background: rgba(245,166,35,0.15); }
+  .pb-admin .pblock-icon  { background: rgba(0,212,200,0.1); }
+  .pb-kiosk .pblock-icon  { background: rgba(155,89,182,0.12); }
+  .pb-user  .pblock-icon  { background: rgba(90,96,112,0.2); }
+  .risk-critical  { background: rgba(255,71,87,0.15); color: var(--red); border: 1px solid rgba(255,71,87,0.3); }
+  .risk-high      { background: rgba(245,166,35,0.15); color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
+  .risk-medium    { background: rgba(0,212,200,0.12); color: var(--teal); border: 1px solid rgba(0,212,200,0.25); }
+  .risk-low       { background: rgba(90,96,112,0.2); color: var(--text-lo); border: 1px solid var(--border); }
+  .connector {
+    display: flex; align-items: center; padding: 0 1.5rem;
+    flex-shrink: 0;
+  }
+  .connector::before {
+    content: '';
+    width: 1px; height: 100%;
+    background: linear-gradient(to bottom, transparent, var(--border), transparent);
+    border-left: 1px dashed var(--border-hi);
+    margin-right: 8px;
+  }
+
+  /* ── SECURITY CARDS ──────────────────────────────── */
+  .threats-grid {
+    display: grid; gap: 1.5rem;
+  }
+  .threat-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .threat-card:hover { transform: translateY(-2px); }
+  .threat-card.critical { border-left: 3px solid var(--red); }
+  .threat-card.high     { border-left: 3px solid var(--amber); }
+  .threat-card.medium   { border-left: 3px solid var(--teal); }
+  .threat-header {
+    padding: 1.2rem 1.5rem;
+    display: flex; align-items: flex-start; gap: 1rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    position: relative;
+  }
+  .threat-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0; margin-top: 1px;
+  }
+  .critical .threat-icon { background: rgba(255,71,87,0.15); }
+  .high     .threat-icon { background: rgba(245,166,35,0.12); }
+  .medium   .threat-icon { background: rgba(0,212,200,0.1); }
+  .threat-title {
+    font-family: var(--sans); font-size: 15px; font-weight: 600;
+    color: var(--text-hi); margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+  .threat-sub { font-size: 12px; color: var(--text-lo); }
+  .threat-badge {
+    margin-left: auto; flex-shrink: 0;
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    padding: 3px 8px; border-radius: 4px; letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .critical .threat-badge { background: rgba(255,71,87,0.15); color: var(--red); border: 1px solid rgba(255,71,87,0.3); }
+  .high     .threat-badge { background: rgba(245,166,35,0.12); color: var(--amber); border: 1px solid rgba(245,166,35,0.25); }
+  .medium   .threat-badge { background: rgba(0,212,200,0.1); color: var(--teal); border: 1px solid rgba(0,212,200,0.2); }
+  .threat-body { padding: 1.5rem; }
+  .scenario-block {
+    background: rgba(255,71,87,0.04); border: 1px solid rgba(255,71,87,0.12);
+    border-radius: 8px; padding: 1rem 1.2rem; margin-bottom: 1rem;
+  }
+  .scenario-block.amber-bg { background: rgba(245,166,35,0.04); border-color: rgba(245,166,35,0.12); }
+  .scenario-block.teal-bg  { background: rgba(0,212,200,0.04); border-color: rgba(0,212,200,0.12); }
+  .scenario-label {
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .scenario-label.red    { color: var(--red); }
+  .scenario-label.amber  { color: var(--amber); }
+  .scenario-label.teal   { color: var(--teal); }
+  .scenario-label.green  { color: var(--green); }
+  .scenario-text { font-size: 13px; color: var(--text-mid); line-height: 1.6; }
+
+  .mitigation-block {
+    background: rgba(46,204,113,0.05); border: 1px solid rgba(46,204,113,0.15);
+    border-radius: 8px; padding: 1rem 1.2rem;
+  }
+  .mitigation-block + .mitigation-block { margin-top: 0.75rem; }
+  .mitigation-list {
+    list-style: none; margin-top: 0.5rem;
+  }
+  .mitigation-list li {
+    display: flex; align-items: flex-start; gap: 8px;
+    font-size: 13px; color: var(--text-mid);
+    line-height: 1.6; margin-bottom: 4px;
+  }
+  .mitigation-list li::before {
+    content: '→';
+    color: var(--green); font-family: var(--mono);
+    font-size: 12px; flex-shrink: 0; margin-top: 2px;
+  }
+  .flag-block {
+    display: flex; gap: 10px;
+    background: rgba(155,89,182,0.08); border: 1px solid rgba(155,89,182,0.2);
+    border-radius: 8px; padding: 1rem 1.2rem; margin-top: 0.75rem;
+  }
+  .flag-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .flag-text { font-size: 13px; color: var(--text-mid); line-height: 1.6; }
+  .flag-text strong { color: var(--purple); }
+
+  /* ── FAILURE MODES GRID ──────────────────────────── */
+  .failure-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  .failure-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.2rem 1.4rem;
+    transition: border-color 0.2s;
+  }
+  .failure-card:hover { border-color: var(--border-hi); }
+  .failure-num {
+    font-family: var(--mono); font-size: 10px; color: var(--text-lo);
+    letter-spacing: 0.1em; margin-bottom: 0.5rem;
+  }
+  .failure-title {
+    font-size: 13px; font-weight: 600; color: var(--text-hi);
+    margin-bottom: 0.5rem; letter-spacing: -0.01em;
+  }
+  .failure-body { font-size: 12px; color: var(--text-lo); line-height: 1.6; }
+  .failure-fix {
+    display: flex; gap: 6px; margin-top: 0.75rem;
+    font-size: 12px; color: var(--teal);
+    font-family: var(--mono);
+    align-items: flex-start;
+  }
+  .failure-fix::before { content: 'FIX:'; flex-shrink: 0; }
+
+  /* ── LAUNCH / DEFER TABLE ────────────────────────── */
+  .launch-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  .launch-col {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+  }
+  .launch-col-header {
+    padding: 1rem 1.4rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .launch-col-header.critical-col { background: rgba(46,204,113,0.06); }
+  .launch-col-header.deferred-col { background: rgba(245,166,35,0.06); }
+  .launch-col-title {
+    font-family: var(--mono); font-size: 13px; font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .critical-col .launch-col-title { color: var(--green); }
+  .deferred-col .launch-col-title { color: var(--amber); }
+  .launch-items { padding: 1rem; }
+  .launch-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 13px; color: var(--text-mid);
+    padding: 6px 8px; border-radius: 6px;
+    transition: background 0.15s;
+  }
+  .launch-item:hover { background: rgba(255,255,255,0.03); }
+  .launch-item-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── TASK PHASES ─────────────────────────────────── */
+  .phases {
+    display: grid; gap: 1.5rem;
+  }
+  .phase-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+  }
+  .phase-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .phase-num-badge {
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    padding: 3px 8px; border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+  .ph0 .phase-num-badge { background: rgba(90,96,112,0.3); color: var(--text-lo); }
+  .ph1 .phase-num-badge { background: rgba(255,71,87,0.15); color: var(--red); }
+  .ph2 .phase-num-badge { background: rgba(245,166,35,0.15); color: var(--amber); }
+  .ph3 .phase-num-badge { background: rgba(0,212,200,0.12); color: var(--teal); }
+  .ph4 .phase-num-badge { background: rgba(155,89,182,0.12); color: var(--purple); }
+  .phase-title {
+    font-size: 14px; font-weight: 600; color: var(--text-hi);
+  }
+  .phase-subtitle { font-size: 12px; color: var(--text-lo); margin-left: auto; font-family: var(--mono); }
+  .phase-tasks { padding: 1rem 1.5rem; display: grid; gap: 0.5rem; }
+  .task-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 8px 10px; border-radius: 6px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.015);
+    transition: border-color 0.15s;
+  }
+  .task-row:hover { border-color: var(--border-hi); }
+  .task-id {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--text-lo); flex-shrink: 0;
+    width: 40px;
+  }
+  .task-desc { font-size: 13px; color: var(--text-mid); line-height: 1.5; }
+  .task-desc strong { color: var(--text-hi); font-weight: 500; }
+  .task-priority {
+    margin-left: auto; flex-shrink: 0;
+    font-family: var(--mono); font-size: 10px;
+    padding: 2px 7px; border-radius: 4px;
+  }
+  .prio-linchpin { background: rgba(255,71,87,0.15); color: var(--red); border: 1px solid rgba(255,71,87,0.25); }
+
+  /* ── OPEN DECISIONS ──────────────────────────────── */
+  .decisions-grid { display: grid; gap: 0.75rem; }
+  .decision-item {
+    display: flex; gap: 12px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem 1.2rem;
+    align-items: flex-start;
+    transition: border-color 0.2s;
+  }
+  .decision-item:hover { border-color: var(--amber-dim); }
+  .decision-checkbox {
+    width: 18px; height: 18px; border-radius: 4px;
+    border: 1.5px solid var(--amber);
+    flex-shrink: 0; margin-top: 2px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(245,166,35,0.08);
+  }
+  .decision-text { font-size: 13px; color: var(--text-mid); line-height: 1.6; }
+  .decision-text strong { color: var(--amber); font-weight: 600; }
+  .decision-rec {
+    margin-top: 4px;
+    font-family: var(--mono); font-size: 11px; color: var(--teal);
+  }
+  .decision-rec::before { content: 'REC: '; }
+
+  /* ── FRAMING QUOTE ────────────────────────────────── */
+  .framing {
+    background: linear-gradient(135deg, rgba(0,212,200,0.06), rgba(245,166,35,0.04));
+    border: 1px solid var(--border-hi);
+    border-radius: 16px; padding: 2.5rem;
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .framing::before {
+    content: '"';
+    position: absolute; top: -0.5rem; left: 1.5rem;
+    font-size: 8rem; line-height: 1;
+    color: rgba(0,212,200,0.08);
+    font-family: Georgia, serif;
+    pointer-events: none;
+  }
+  .framing-text {
+    font-size: 18px; font-weight: 400;
+    color: var(--text-hi); line-height: 1.7;
+    max-width: 680px; margin: 0 auto 1.5rem;
+    position: relative;
+    font-style: italic;
+    letter-spacing: -0.01em;
+  }
+  .framing-text em { color: var(--teal); font-style: normal; font-weight: 600; }
+  .framing-sig {
+    font-family: var(--mono); font-size: 12px; color: var(--text-lo);
+  }
+
+  /* ── DIVIDER ─────────────────────────────────────── */
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+    margin: 3rem 0;
+  }
+
+  /* ── BUILD ORDER FLOW ────────────────────────────── */
+  .flow-row {
+    display: flex; align-items: center; gap: 0; flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .flow-box {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 14px;
+    font-family: var(--mono); font-size: 12px; color: var(--text-mid);
+    margin: 4px 0;
+  }
+  .flow-box.milestone {
+    border-color: var(--teal);
+    color: var(--teal);
+    background: rgba(0,212,200,0.06);
+  }
+  .flow-arrow {
+    font-size: 16px; color: var(--text-lo);
+    padding: 0 6px;
+  }
+  .flow-note {
+    font-family: var(--mono); font-size: 11px; color: var(--text-lo);
+    margin-left: 1rem; font-style: italic;
+  }
+
+  /* ── HIGHLIGHT BOX ───────────────────────────────── */
+  .info-box {
+    display: flex; gap: 12px;
+    border-radius: 8px; padding: 1rem 1.2rem; margin: 1.5rem 0;
+    font-size: 13px; color: var(--text-mid); line-height: 1.6;
+    align-items: flex-start;
+  }
+  .info-box.warning { background: rgba(245,166,35,0.07); border: 1px solid rgba(245,166,35,0.2); }
+  .info-box.danger  { background: rgba(255,71,87,0.07);  border: 1px solid rgba(255,71,87,0.2); }
+  .info-box.success { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.18); }
+  .info-box-icon { font-size: 18px; flex-shrink: 0; }
+
+  /* ── SCROLL REVEAL ────────────────────────────────── */
+  .reveal {
+    opacity: 0; transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  /* ── FOOTER ─────────────────────────────────────── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem;
+    text-align: center;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--text-lo);
+  }
+
+  /* ── RESPONSIVE ─────────────────────────────────── */
+  @media (max-width: 900px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .blast-diagram { display: none; }
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .failure-grid { grid-template-columns: 1fr; }
+    .launch-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── NAVIGATION ─────────────────────────────────────── -->
+<nav>
+  <div class="nav-brand">ADMIN AUTH — SECURITY ANALYSIS v2.1</div>
+  <ul class="nav-links">
+    <li><a href="#roles">Roles</a></li>
+    <li><a href="#security">Threats</a></li>
+    <li><a href="#failures">Failures</a></li>
+    <li><a href="#launch">Launch</a></li>
+    <li><a href="#tasks">Tasks</a></li>
+    <li><a href="#decisions">Decisions</a></li>
+  </ul>
+</nav>
+
+<!-- ── HERO ───────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-grid">
+    <div>
+      <div class="hero-eyebrow">Deep Engineering Analysis · Security + Failure Modes</div>
+      <h1>Where <span>Admin Auth</span><br>Breaks, and What<br>We Defer</h1>
+      <p class="hero-desc">
+        A surgical analysis of security holes, production failure modes, and launch-critical hardening for a high-privilege, fintech-grade admin authentication system.
+      </p>
+      <div class="hero-meta">
+        <span class="meta-chip author">Hemant Soni</span>
+        <span class="meta-chip date">13 July 2026</span>
+        <span class="meta-chip status">Analysis + Build Plan</span>
+      </div>
+      <div class="hero-badges">
+        <div class="badge"><span class="badge-dot red"></span>Tech Admin — Platform control</div>
+        <div class="badge"><span class="badge-dot amber"></span>Super Admin — Financial control</div>
+        <div class="badge"><span class="badge-dot teal"></span>Admin — Operational control</div>
+        <div class="badge"><span class="badge-dot purple"></span>Kiosk — Device access</div>
+      </div>
+    </div>
+
+    <!-- BLAST RADIUS DIAGRAM -->
+    <div class="blast-diagram">
+      <svg viewBox="0 0 440 440" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="bg-grad" cx="50%" cy="50%">
+            <stop offset="0%" stop-color="#FF4757" stop-opacity="0.06"/>
+            <stop offset="100%" stop-color="#080A0F" stop-opacity="0"/>
+          </radialGradient>
+          <filter id="glow-red"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="glow-amber"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="glow-teal"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+
+        <!-- Background glow -->
+        <circle cx="220" cy="220" r="200" fill="url(#bg-grad)"/>
+
+        <!-- Ring 5 — User -->
+        <circle cx="220" cy="220" r="195" fill="none" stroke="#1E2433" stroke-width="1" stroke-dasharray="4 8"/>
+        <!-- Ring 4 — Kiosk -->
+        <circle cx="220" cy="220" r="158" fill="none" stroke="#2A3245" stroke-width="1" stroke-dasharray="4 6"/>
+        <!-- Ring 3 — Admin -->
+        <circle cx="220" cy="220" r="118" fill="none" stroke="#00D4C8" stroke-width="1" stroke-opacity="0.35"/>
+        <!-- Ring 2 — Super Admin -->
+        <circle cx="220" cy="220" r="80" fill="none" stroke="#F5A623" stroke-width="1.5" stroke-opacity="0.5"/>
+        <!-- Ring 1 — Tech Admin -->
+        <circle cx="220" cy="220" r="44" fill="none" stroke="#FF4757" stroke-width="2" filter="url(#glow-red)"/>
+
+        <!-- Filled circles -->
+        <circle cx="220" cy="220" r="195" fill="rgba(90,96,112,0.04)"/>
+        <circle cx="220" cy="220" r="158" fill="rgba(155,89,182,0.06)"/>
+        <circle cx="220" cy="220" r="118" fill="rgba(0,212,200,0.05)"/>
+        <circle cx="220" cy="220" r="80" fill="rgba(245,166,35,0.07)"/>
+        <circle cx="220" cy="220" r="44" fill="rgba(255,71,87,0.15)" filter="url(#glow-red)"/>
+
+        <!-- Center: Tech Admin -->
+        <text x="220" y="214" text-anchor="middle" class="ring-role" fill="#FF4757" font-family="JetBrains Mono" font-size="11" font-weight="700">TECH</text>
+        <text x="220" y="228" text-anchor="middle" class="ring-role" fill="#FF4757" font-family="JetBrains Mono" font-size="11" font-weight="700">ADMIN</text>
+
+        <!-- Super Admin label -->
+        <text x="220" y="155" text-anchor="middle" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#F5A623">SUPER ADMIN</text>
+        <text x="220" y="167" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#886030">Financial + Payout</text>
+
+        <!-- Admin label -->
+        <text x="358" y="195" text-anchor="start" font-family="JetBrains Mono" font-size="9" fill="#00D4C8">ADMIN</text>
+
+        <!-- Kiosk label -->
+        <text x="220" y="49" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#9B59B6">KIOSK</text>
+
+        <!-- User label -->
+        <text x="220" y="18" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#5A6070">USER</text>
+
+        <!-- Blast radius annotations -->
+        <line x1="158" y1="220" x2="110" y2="320" stroke="#FF4757" stroke-width="1" stroke-opacity="0.3"/>
+        <text x="60" y="315" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#FF4757" opacity="0.7">Total platform</text>
+        <text x="60" y="326" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#FF4757" opacity="0.7">compromise</text>
+
+        <line x1="220" y1="300" x2="170" y2="365" stroke="#F5A623" stroke-width="1" stroke-opacity="0.3"/>
+        <text x="130" y="375" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#F5A623" opacity="0.7">Financial</text>
+        <text x="130" y="386" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#F5A623" opacity="0.7">exposure</text>
+
+        <!-- Pulse rings (animated) -->
+        <circle cx="220" cy="220" r="44" fill="none" stroke="#FF4757" stroke-width="1.5" stroke-opacity="0.4">
+          <animate attributeName="r" values="44;70;44" dur="3s" repeatCount="indefinite"/>
+          <animate attributeName="stroke-opacity" values="0.4;0;0.4" dur="3s" repeatCount="indefinite"/>
+        </circle>
+
+        <!-- Title -->
+        <text x="220" y="425" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#5A6070">PRIVILEGE HIERARCHY — BLAST RADIUS MAP</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ── MAIN LAYOUT ─────────────────────────────────────── -->
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <p class="sidebar-title">Contents</p>
+    <ul class="sidebar-nav">
+      <li><a href="#roles">01 — Role Model</a></li>
+      <li><a href="#security">02 — Security Holes</a></li>
+      <ul class="sub sidebar-nav">
+        <li><a href="#priv-esc">Privilege Escalation</a></li>
+        <li><a href="#bootstrap">Bootstrap Risk</a></li>
+        <li><a href="#otp">OTP Attacks</a></li>
+        <li><a href="#sessions">Sessions</a></li>
+        <li><a href="#money">Money Surface</a></li>
+        <li><a href="#audit">Audit Log</a></li>
+      </ul>
+      <li><a href="#failures">03 — Failure Modes</a></li>
+      <li><a href="#system">04 — System Concerns</a></li>
+      <li><a href="#launch">05 — Launch vs Defer</a></li>
+      <li><a href="#tasks">06 — Task Breakdown</a></li>
+      <li><a href="#decisions">07 — Open Decisions</a></li>
+    </ul>
+
+    <div class="severity-legend">
+      <p class="sev-title">Severity</p>
+      <div class="sev-item"><span class="sev-dot" style="background:var(--red)"></span>Critical</div>
+      <div class="sev-item"><span class="sev-dot" style="background:var(--amber)"></span>High</div>
+      <div class="sev-item"><span class="sev-dot" style="background:var(--teal)"></span>Medium</div>
+      <div class="sev-item"><span class="sev-dot" style="background:var(--green)"></span>Mitigated</div>
+      <div class="sev-item"><span class="sev-dot" style="background:var(--purple)"></span>Flag to Senior</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ── 01 ROLE MODEL ─────────────────────────────── -->
+    <section id="roles" class="reveal">
+      <div class="section-header">
+        <span class="section-num">01</span>
+        <h2 class="section-title">The Role Model — What We're Securing</h2>
+      </div>
+
+      <div class="info-box danger">
+        <span class="info-box-icon">⚠️</span>
+        <div>These are not "user accounts." A Tech Admin compromise means <strong style="color:var(--red)">total platform control</strong>. A Super Admin compromise means <strong style="color:var(--amber)">financial control and rogue machine registration</strong>. The threat model is closer to an internal admin panel of a fintech.</div>
+      </div>
+
+      <div class="role-pyramid">
+        <!-- Tech Admin -->
+        <div class="pyramid-row">
+          <div class="pyramid-block pb-tech">
+            <div class="pyramid-block-left">
+              <div class="pblock-icon">🔑</div>
+              <div>
+                <div class="pblock-name">Tech Admin</div>
+                <div class="pblock-desc">Seeded in DB at deployment · manages Super Admins · highest privilege · no in-app creation path</div>
+              </div>
+            </div>
+            <span class="pblock-risk risk-critical">CRITICAL</span>
+          </div>
+        </div>
+        <!-- Super Admin -->
+        <div class="pyramid-row">
+          <div class="pyramid-indent" style="width:2rem"></div>
+          <div class="connector"></div>
+          <div class="pyramid-block pb-super">
+            <div class="pyramid-block-left">
+              <div class="pblock-icon">💰</div>
+              <div>
+                <div class="pblock-name">Super Admin</div>
+                <div class="pblock-desc">Created by Tech Admin · manages Admins + Machines · handles payouts and revenue share</div>
+              </div>
+            </div>
+            <span class="pblock-risk risk-high">HIGH</span>
+          </div>
+        </div>
+        <!-- Admin -->
+        <div class="pyramid-row">
+          <div class="pyramid-indent" style="width:4rem"></div>
+          <div class="connector"></div>
+          <div class="pyramid-block pb-admin">
+            <div class="pyramid-block-left">
+              <div class="pblock-icon">🛠️</div>
+              <div>
+                <div class="pblock-name">Admin</div>
+                <div class="pblock-desc">Created by Super Admin (Module 03) · operational management</div>
+              </div>
+            </div>
+            <span class="pblock-risk risk-medium">MEDIUM</span>
+          </div>
+        </div>
+        <!-- Kiosk -->
+        <div class="pyramid-row">
+          <div class="pyramid-indent" style="width:6rem"></div>
+          <div class="connector"></div>
+          <div class="pyramid-block pb-kiosk">
+            <div class="pyramid-block-left">
+              <div class="pblock-icon">📟</div>
+              <div>
+                <div class="pblock-name">Kiosk</div>
+                <div class="pblock-desc">Registered by Super Admin · physical device access</div>
+              </div>
+            </div>
+            <span class="pblock-risk risk-low">LOW</span>
+          </div>
+        </div>
+        <!-- User -->
+        <div class="pyramid-row">
+          <div class="pyramid-indent" style="width:8rem"></div>
+          <div class="connector"></div>
+          <div class="pyramid-block pb-user">
+            <div class="pyramid-block-left">
+              <div class="pblock-icon">👤</div>
+              <div>
+                <div class="pblock-name">User</div>
+                <div class="pblock-desc">End customer · standard access</div>
+              </div>
+            </div>
+            <span class="pblock-risk risk-low">STANDARD</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── 02 SECURITY HOLES ─────────────────────────── -->
+    <section id="security" class="reveal">
+      <div class="section-header">
+        <span class="section-num">02</span>
+        <h2 class="section-title">Security Holes — The Critical Section</h2>
+      </div>
+      <p style="color:var(--text-lo);font-size:14px;margin-bottom:2rem;">Admin auth is where a single hole becomes catastrophic. This is the heart of the analysis.</p>
+
+      <div class="threats-grid">
+
+        <!-- 2.1 Privilege Escalation -->
+        <div class="threat-card critical reveal" id="priv-esc">
+          <div class="threat-header">
+            <div class="threat-icon">⬆️</div>
+            <div>
+              <div class="threat-title">Privilege Escalation</div>
+              <div class="threat-sub">Role tampering via request body · namespace crossing</div>
+            </div>
+            <span class="threat-badge">CRITICAL</span>
+          </div>
+          <div class="threat-body">
+            <div class="scenario-block">
+              <div class="scenario-label red">Scenario — Role Tampering</div>
+              <div class="scenario-text">If any endpoint trusts a client-supplied <code style="color:var(--teal);font-family:var(--mono);font-size:12px">role</code> field, a Super Admin could craft a request claiming <code style="color:var(--red);font-family:var(--mono);font-size:12px">tech_admin</code> privileges. "Immutable in schema" is not the same as "enforced at the write path."</div>
+            </div>
+            <div class="scenario-block">
+              <div class="scenario-label red">Scenario — Namespace Crossing</div>
+              <div class="scenario-text">A Super Admin's JWT used against <code style="color:var(--teal);font-family:var(--mono);font-size:12px">/api/tech/*</code> routes. Middleware must check role against namespace — not just "valid JWT."</div>
+            </div>
+            <div class="mitigation-block">
+              <div class="scenario-label green">Mitigations</div>
+              <ul class="mitigation-list">
+                <li>Role is <strong>never</strong> read from request body; derived only from authenticated JWT</li>
+                <li>On registration, role is hardcoded server-side — never passed in</li>
+                <li>Write-time guard rejects any payload containing a <code style="font-family:var(--mono);font-size:12px;color:var(--teal)">role</code> field entirely</li>
+                <li>Namespace check (<code style="font-family:var(--mono);font-size:12px;color:var(--teal)">token role === namespace role</code>) runs before every handler, hard reject otherwise</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2.2 Bootstrap Risk -->
+        <div class="threat-card high reveal" id="bootstrap">
+          <div class="threat-header">
+            <div class="threat-icon">🌱</div>
+            <div>
+              <div class="threat-title">Seeded Tech Admin — Bootstrap Risk</div>
+              <div class="threat-sub">Seed credentials · password fallback · last-admin lockout</div>
+            </div>
+            <span class="threat-badge">HIGH</span>
+          </div>
+          <div class="threat-body">
+            <div class="scenario-block amber-bg">
+              <div class="scenario-label amber">Scenario — Credentials in Source Control</div>
+              <div class="scenario-text">If the seed script contains Tech Admin phone/details and is committed, anyone with repo access knows the highest-privilege account.</div>
+            </div>
+            <div class="scenario-block amber-bg">
+              <div class="scenario-label amber">Scenario — Password Hash Fallback</div>
+              <div class="scenario-text">A bcrypt <code style="font-family:var(--mono);font-size:12px;color:var(--amber)">passwordHash</code> "fallback for internal tooling" on the highest-privilege account is a second auth path — and second auth paths are second attack surfaces.</div>
+            </div>
+            <div class="scenario-block amber-bg">
+              <div class="scenario-label amber">Scenario — Last Admin Lockout</div>
+              <div class="scenario-text">If the single seeded Tech Admin loses phone access (lost SIM, number ported), there is NO in-app recovery — by design.</div>
+            </div>
+            <div class="mitigation-block">
+              <div class="scenario-label green">Mitigations</div>
+              <ul class="mitigation-list">
+                <li>Seed values from environment / secrets manager — never hardcoded in the script</li>
+                <li>Seed script is idempotent (re-running doesn't duplicate or reset state)</li>
+                <li>Seed <strong>at least two</strong> Tech Admin accounts on controlled numbers</li>
+                <li>Document DB-intervention recovery procedure — not tribal knowledge</li>
+              </ul>
+            </div>
+            <div class="flag-block">
+              <span class="flag-icon">🚩</span>
+              <div class="flag-text"><strong>Flag to Senior:</strong> Gate the password fallback behind an env flag, <strong>OFF by default</strong> in production. Every auth path you don't ship is an attack surface you don't have to defend. Decision needed: is the password fallback required for launch, or deferred?</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2.3 OTP -->
+        <div class="threat-card critical reveal" id="otp">
+          <div class="threat-header">
+            <div class="threat-icon">🔢</div>
+            <div>
+              <div class="threat-title">OTP — The Primary Auth Factor</div>
+              <div class="threat-sub">Brute force · replay · enumeration · SIM swap</div>
+            </div>
+            <span class="threat-badge">CRITICAL</span>
+          </div>
+          <div class="threat-body">
+            <div class="scenario-block">
+              <div class="scenario-label red">Scenario — OTP Brute Force</div>
+              <div class="scenario-text">6-digit OTP = 1,000,000 combinations. 3 attempts → 15-min lockout is good — but can an attacker request a fresh OTP repeatedly to reset the attempt counter and keep guessing?</div>
+            </div>
+            <div class="mitigation-block">
+              <ul class="mitigation-list">
+                <li>Lockout must be per-phone within a rolling window — not just per-OTP-request</li>
+                <li>Cap OTP requests at <strong>≤5 per phone per hour</strong>, independent of attempt count</li>
+              </ul>
+            </div>
+            <br>
+            <div class="scenario-block">
+              <div class="scenario-label red">Scenario — Replay & Enumeration</div>
+              <div class="scenario-text">If a verified OTP isn't immediately consumed, it can be replayed. Differing error messages for "phone not found" vs "wrong OTP" allow admin phone enumeration.</div>
+            </div>
+            <div class="mitigation-block">
+              <ul class="mitigation-list">
+                <li>OTP is single-use: deleted/consumed the instant it verifies</li>
+                <li>Identical generic response for phone-not-found, wrong-OTP, and lockout-active</li>
+                <li>Never reveal whether a phone is a registered admin account</li>
+              </ul>
+            </div>
+            <br>
+            <div class="scenario-block">
+              <div class="scenario-label red">Scenario — SIM Swap</div>
+              <div class="scenario-text">OTP over SMS is vulnerable to SIM-swap attacks. For Tech Admin accounts, this is the single biggest real-world attack vector.</div>
+            </div>
+            <div class="flag-block">
+              <span class="flag-icon">🚩</span>
+              <div class="flag-text"><strong>Flag to Senior:</strong> For launch, SMS OTP is acceptable — documented risk. For the future, evaluate TOTP (authenticator app) or hardware key as a second factor specifically for Tech Admin. At minimum, alert on Tech Admin login from a new device.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2.4 Session & Token -->
+        <div class="threat-card high reveal" id="sessions">
+          <div class="threat-header">
+            <div class="threat-icon">🪙</div>
+            <div>
+              <div class="threat-title">Session & Token Security</div>
+              <div class="threat-sub">Token theft · live session abuse · restriction bypass</div>
+            </div>
+            <span class="threat-badge">HIGH</span>
+          </div>
+          <div class="threat-body">
+            <div class="scenario-block amber-bg">
+              <div class="scenario-label amber">Scenario — Stolen Token (24h window)</div>
+              <div class="scenario-text">24h expiry, no refresh token. A stolen JWT is valid for up to 24 hours with no way to detect misuse mid-window.</div>
+            </div>
+            <div class="scenario-block amber-bg">
+              <div class="scenario-label amber">Scenario — Restriction Without Session Kill</div>
+              <div class="scenario-text">A Super Admin is restricted mid-flight. Their existing JWT may still be valid. What about removal — does an existing valid token at moment of deletion continue to work?</div>
+            </div>
+            <div class="mitigation-block">
+              <div class="scenario-label green">Mitigations</div>
+              <ul class="mitigation-list">
+                <li>Token stored <strong>hashed</strong> in session record</li>
+                <li>Middleware checks active session record on <strong>every request</strong> — not just JWT signature</li>
+                <li><code style="font-family:var(--mono);font-size:12px;color:var(--teal)">isDeleted</code> and <code style="font-family:var(--mono);font-size:12px;color:var(--teal)">isRestricted</code> checked on every request — a removed account is rejected on its very next API call</li>
+                <li>Per-request DB fetch cannot be skipped for performance without reintroducing this hole</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2.5 Money Surface -->
+        <div class="threat-card critical reveal" id="money">
+          <div class="threat-header">
+            <div class="threat-icon">💳</div>
+            <div>
+              <div class="threat-title">The Money Surface — Super Admin Payouts</div>
+              <div class="threat-sub">Payout detail tampering · revenue share out of bounds</div>
+            </div>
+            <span class="threat-badge">CRITICAL</span>
+          </div>
+          <div class="threat-body">
+            <div class="scenario-block">
+              <div class="scenario-label red">Scenario — Payout Redirection</div>
+              <div class="scenario-text">A compromised Super Admin (or escalated attacker) changes an Admin's <code style="font-family:var(--mono);font-size:12px;color:var(--red)">payoutDetails</code> to redirect money to an attacker-controlled bank account / UPI.</div>
+            </div>
+            <div class="scenario-block">
+              <div class="scenario-label red">Scenario — Revenue Share Out of Bounds</div>
+              <div class="scenario-text">No stated validation on <code style="font-family:var(--mono);font-size:12px;color:var(--red)">revenueSharePercent</code>. A value of 150%, -10%, or 0% could break downstream payout math.</div>
+            </div>
+            <div class="mitigation-block">
+              <div class="scenario-label green">Mitigations</div>
+              <ul class="mitigation-list">
+                <li>Every change to <code style="font-family:var(--mono);font-size:12px;color:var(--teal)">payoutDetails</code> / <code style="font-family:var(--mono);font-size:12px;color:var(--teal)">revenueSharePercent</code> is audit-logged with <strong>before + after</strong> values</li>
+                <li>Validate: <code style="font-family:var(--mono);font-size:12px;color:var(--teal)">0 ≤ revenueSharePercent ≤ 100</code></li>
+                <li>Log who set it, when it was changed, and from what previous value</li>
+              </ul>
+            </div>
+            <div class="flag-block">
+              <span class="flag-icon">🚩</span>
+              <div class="flag-text"><strong>Decision needed:</strong> Should payout changes require a second approval (Tech Admin sign-off)? For launch: audit-log it. For scale: consider dual-control.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2.6 Audit Log -->
+        <div class="threat-card medium reveal" id="audit">
+          <div class="threat-header">
+            <div class="threat-icon">📋</div>
+            <div>
+              <div class="threat-title">Audit Log Integrity</div>
+              <div class="threat-sub">Silent failures · not truly append-only · accountability illusion</div>
+            </div>
+            <span class="threat-badge">MEDIUM</span>
+          </div>
+          <div class="threat-body">
+            <div class="scenario-block teal-bg">
+              <div class="scenario-label teal">Scenario — Action Succeeds, Audit Fails</div>
+              <div class="scenario-text">Restrict a Super Admin succeeds, but the history insert fails (DB blip). Now there's a restriction with no record of who did it or why. If the audit log can be tampered with or fails silently, accountability is an illusion.</div>
+            </div>
+            <div class="mitigation-block">
+              <div class="scenario-label green">Mitigations</div>
+              <ul class="mitigation-list">
+                <li>Audit write and the action are as close to atomic as the DB allows</li>
+                <li>If audit write fails, that is a logged <strong style="color:var(--red)">ERROR</strong> — the one place where real alerting is non-negotiable</li>
+                <li>History collections have <strong>no update/delete methods</strong> — append-only enforced in code, not just convention</li>
+                <li>For launch: action proceeds, audit failure logged loudly. For scale: transactional write.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── 03 FAILURE MODES ───────────────────────────── -->
+    <section id="failures" class="reveal">
+      <div class="section-header">
+        <span class="section-num">03</span>
+        <h2 class="section-title">Failure Modes — Production Breakage</h2>
+      </div>
+      <p style="color:var(--text-lo);font-size:14px;margin-bottom:1.5rem;">Things that won't show in testing but will break in production.</p>
+
+      <div class="failure-grid">
+        <div class="failure-card">
+          <div class="failure-num">FAILURE · 01</div>
+          <div class="failure-title">Duplicate Registration (Double-Submit)</div>
+          <div class="failure-body">Tech Admin taps "Register Super Admin" twice or network retries. Two super_admins with the same phone could be created.</div>
+          <div class="failure-fix">Unique constraint on phone before insert; phone is the natural unique key</div>
+        </div>
+        <div class="failure-card">
+          <div class="failure-num">FAILURE · 02</div>
+          <div class="failure-title">Abandoned Profile After OTP Verify</div>
+          <div class="failure-body">OTP verified → fill profile → create. User abandons after OTP but before submit. Dangling verification state.</div>
+          <div class="failure-fix">Account created only at final submit. OTP verification alone creates nothing. No half-records.</div>
+        </div>
+        <div class="failure-card">
+          <div class="failure-num">FAILURE · 03</div>
+          <div class="failure-title">Restrict During Mid-Flight Action</div>
+          <div class="failure-body">Super Admin registers a Machine when Tech Admin restricts them. Does the in-flight request complete?</div>
+          <div class="failure-fix">Middleware checks isRestricted at request start. In-flight may complete; next one is blocked. Document explicitly.</div>
+        </div>
+        <div class="failure-card">
+          <div class="failure-num">FAILURE · 04</div>
+          <div class="failure-title">Removed Super Admin — Orphaned Ownership</div>
+          <div class="failure-body">Soft-delete a Super Admin. Their <code style="font-family:var(--mono);font-size:11px;color:var(--teal)">registeredBy</code> references on Admins/Machines now point to a deleted account.</div>
+          <div class="failure-fix">registeredBy is a historical snapshot, not a live FK. Admins/Machines created by them stay active — deliberate, not a bug.</div>
+        </div>
+        <div class="failure-card">
+          <div class="failure-num">FAILURE · 05</div>
+          <div class="failure-title">Machine Phase 1 Done, Phase 2 Never Happens</div>
+          <div class="failure-body">Super Admin registers a machine (Phase 1). Kiosk app never syncs (Phase 2). Machine sits half-registered indefinitely.</div>
+          <div class="failure-fix">Status reflects this: active but <code style="font-family:var(--mono);font-size:11px;color:var(--teal)">phase2CompletedAt = null</code>. Report "machines pending first sync." Not a launch blocker.</div>
+        </div>
+        <div class="failure-card">
+          <div class="failure-num">FAILURE · 06</div>
+          <div class="failure-title">linkedMachines Array Drift</div>
+          <div class="failure-body">Machine insert succeeds but the <code style="font-family:var(--mono);font-size:11px;color:var(--teal)">Admin.linkedMachines</code> array push fails. Machine exists but isn't linked.</div>
+          <div class="failure-fix">Order operations so array push is last. On failure, machine is unlinked but recoverable. Log the inconsistency at launch.</div>
+        </div>
+        <div class="failure-card">
+          <div class="failure-num">FAILURE · 07</div>
+          <div class="failure-title">Clock Skew on OTP / Session Expiry</div>
+          <div class="failure-body">Expiry computed on different servers with drifting clocks. OTPs expire early or late; sessions misjudged.</div>
+          <div class="failure-fix">All expiry computed server-side from a single time source. Never trust client timestamps.</div>
+        </div>
+        <div class="failure-card">
+          <div class="failure-num">FAILURE · 08</div>
+          <div class="failure-title">History Collection Grows Unbounded</div>
+          <div class="failure-body">Every login, view, and action is logged forever. Over time, query performance degrades without indexing.</div>
+          <div class="failure-fix">Index on actorId, targetId, date. Archival / TTL strategy deferred but flagged for post-launch.</div>
+        </div>
+        <div class="failure-card">
+          <div class="failure-num">FAILURE · 09</div>
+          <div class="failure-title">Phone Number Reuse After Removal</div>
+          <div class="failure-body">A removed Super Admin's phone is reused to register a new Super Admin. The soft-deleted record still holds that phone.</div>
+          <div class="failure-fix">Unique-phone check filters <code style="font-family:var(--mono);font-size:11px;color:var(--teal)">isDeleted=false</code>. Old record preserved for audit; phone can be re-registered.</div>
+        </div>
+        <div class="failure-card">
+          <div class="failure-num">FAILURE · 10</div>
+          <div class="failure-title">Restriction Reason Missing Despite "Mandatory"</div>
+          <div class="failure-body">Spec says reason is mandatory for restrict/remove. If validation is only client-side, a crafted API request omits it.</div>
+          <div class="failure-fix">Server-side validation rejects restrict/remove without a non-empty reason. Mandatory = enforced at the API, not just the UI.</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── 05 LAUNCH vs DEFER ─────────────────────────── -->
+    <section id="launch" class="reveal">
+      <div class="section-header">
+        <span class="section-num">04</span>
+        <h2 class="section-title">Launch-Critical vs Deferred</h2>
+      </div>
+
+      <div class="launch-grid">
+        <div class="launch-col">
+          <div class="launch-col-header critical-col">
+            <span style="font-size:18px">✅</span>
+            <span class="launch-col-title">LAUNCH-CRITICAL</span>
+            <span style="font-family:var(--mono);font-size:10px;color:var(--text-lo);margin-left:auto">Cannot ship without</span>
+          </div>
+          <div class="launch-items">
+            <div class="launch-item"><span class="launch-item-icon">🔐</span>Phone + OTP login, both roles</div>
+            <div class="launch-item"><span class="launch-item-icon">📦</span>Per-role session collections + JWT</div>
+            <div class="launch-item"><span class="launch-item-icon">🛡️</span>Restriction middleware (role-match, isDeleted, isRestricted on every request)</div>
+            <div class="launch-item"><span class="launch-item-icon">🔒</span>Role derived from token, never request body</div>
+            <div class="launch-item"><span class="launch-item-icon">👤</span>Register Super Admin / Admin / Machine flows</div>
+            <div class="launch-item"><span class="launch-item-icon">⛔</span>Restrict / Unrestrict / Remove flows</div>
+            <div class="launch-item"><span class="launch-item-icon">📝</span>Mandatory reason enforced server-side</div>
+            <div class="launch-item"><span class="launch-item-icon">📋</span>Audit log writes for all actions</div>
+            <div class="launch-item"><span class="launch-item-icon">⏱️</span>OTP single-use + per-phone rate limiting</div>
+            <div class="launch-item"><span class="launch-item-icon">🤐</span>Uniform login error responses (no enumeration)</div>
+            <div class="launch-item"><span class="launch-item-icon">🌱</span>Seed script from env (not hardcoded)</div>
+            <div class="launch-item"><span class="launch-item-icon">➕</span>Append-only history (no update/delete methods)</div>
+            <div class="launch-item"><span class="launch-item-icon">🔄</span>Before/after value capture on every field change</div>
+          </div>
+        </div>
+
+        <div class="launch-col">
+          <div class="launch-col-header deferred-col">
+            <span style="font-size:18px">⏭️</span>
+            <span class="launch-col-title">DEFERRED</span>
+            <span style="font-family:var(--mono);font-size:10px;color:var(--text-lo);margin-left:auto">Build against real need</span>
+          </div>
+          <div class="launch-items">
+            <div class="launch-item"><span class="launch-item-icon">🔑</span>MFA / TOTP on Tech Admin</div>
+            <div class="launch-item"><span class="launch-item-icon">🔔</span>New-device login alerting</div>
+            <div class="launch-item"><span class="launch-item-icon">🚪</span>"Revoke all sessions" on restrict/remove</div>
+            <div class="launch-item"><span class="launch-item-icon">✌️</span>Dual-control approval for payout changes</div>
+            <div class="launch-item"><span class="launch-item-icon">🗄️</span>Audit log archival / TTL strategy</div>
+            <div class="launch-item"><span class="launch-item-icon">🔗</span>Transactional audit writes</div>
+            <div class="launch-item"><span class="launch-item-icon">💰</span>Payout-change second approval</div>
+          </div>
+          <div style="margin: 0 1rem 1rem; padding: 0.75rem 1rem; background: rgba(90,96,112,0.1); border: 1px solid var(--border); border-radius: 8px;">
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-lo);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem;">⛔ Explicit Non-Goals</div>
+            <div style="font-size:12px;color:var(--text-lo);">Admin role internals (Module 03) · Operator management · Cross-namespace calls</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── 06 TASK BREAKDOWN ─────────────────────────── -->
+    <section id="tasks" class="reveal">
+      <div class="section-header">
+        <span class="section-num">05</span>
+        <h2 class="section-title">Task Breakdown — Phased Build</h2>
+      </div>
+
+      <div class="info-box warning">
+        <span class="info-box-icon">⚡</span>
+        <div><strong style="color:var(--amber)">Build order is not optional.</strong> The restriction middleware is the security linchpin. Phase 0 → Phase 1 → Phase 2 → Phase 3 — deviating from this order reintroduces the holes this analysis was written to prevent.</div>
+      </div>
+
+      <div style="margin-bottom:1.5rem; margin-top:1.5rem;">
+        <p style="font-family:var(--mono);font-size:11px;color:var(--text-lo);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.75rem;">Build Flow</p>
+        <div class="flow-row">
+          <div class="flow-box">Ph 0: Foundation</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box" style="border-color:var(--red);color:var(--red);background:rgba(255,71,87,0.06)">Ph 1: Security Core</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box" style="border-color:var(--amber);color:var(--amber);background:rgba(245,166,35,0.06)">Ph 2: Tech Admin</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box" style="border-color:var(--teal);color:var(--teal);background:rgba(0,212,200,0.06)">Ph 3: Super Admin</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box milestone">🚀 Launch</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box" style="border-color:var(--purple);color:var(--purple);background:rgba(155,89,182,0.06)">Ph 4: Hardening</div>
+        </div>
+      </div>
+
+      <div class="phases">
+        <div class="phase-card ph0">
+          <div class="phase-header">
+            <span class="phase-num-badge">PHASE 0</span>
+            <span class="phase-title">Foundation — Shared Utilities</span>
+            <span class="phase-subtitle">Build first</span>
+          </div>
+          <div class="phase-tasks">
+            <div class="task-row"><span class="task-id">0.1</span><div class="task-desc"><strong>Module structure + folder scaffolding</strong> — tech-admin/ and super-admin/ modules + shared admin-auth utilities</div></div>
+            <div class="task-row"><span class="task-id">0.2</span><div class="task-desc"><strong>Data models / entities</strong> — tech_admins, super_admins, admins, machines + four session/history collection shapes</div></div>
+            <div class="task-row"><span class="task-id">0.3</span><div class="task-desc"><strong>Shared OTP service (reuse + adapt)</strong> — generate, send, verify, single-use, per-phone rate limit + lockout (stricter than user-facing limits)</div></div>
+            <div class="task-row"><span class="task-id">0.4</span><div class="task-desc"><strong>Shared JWT + session service (per-role)</strong> — sign token, write session record, validate, hashed token storage, logout invalidation</div></div>
+          </div>
+        </div>
+
+        <div class="phase-card ph1">
+          <div class="phase-header">
+            <span class="phase-num-badge">PHASE 1</span>
+            <span class="phase-title">Security Core — Restriction Middleware</span>
+            <span class="phase-subtitle" style="color:var(--red)">DO NOT SKIP OR SHORTCUT</span>
+          </div>
+          <div class="phase-tasks">
+            <div class="task-row" style="border-color:rgba(255,71,87,0.3)">
+              <span class="task-id">1.1</span>
+              <div class="task-desc"><strong>Restriction middleware</strong> — JWT verify → role extract → namespace match → fetch record → isDeleted check → isRestricted check → forward</div>
+              <span class="task-priority prio-linchpin">LINCHPIN</span>
+            </div>
+            <div class="task-row"><span class="task-id">1.2</span><div class="task-desc"><strong>Audit log foundation (append-only)</strong> — history repos for both roles, create + read only, no update/delete methods</div></div>
+          </div>
+        </div>
+
+        <div class="phase-card ph2">
+          <div class="phase-header">
+            <span class="phase-num-badge">PHASE 2</span>
+            <span class="phase-title">Tech Admin — Full Implementation</span>
+            <span class="phase-subtitle">7 tasks</span>
+          </div>
+          <div class="phase-tasks">
+            <div class="task-row"><span class="task-id">2.1</span><div class="task-desc">Tech Admin login (phone + OTP → JWT)</div></div>
+            <div class="task-row"><span class="task-id">2.2</span><div class="task-desc">Register Super Admin (OTP-verify target + create record + audit)</div></div>
+            <div class="task-row"><span class="task-id">2.3</span><div class="task-desc">Restrict Super Admin (mandatory reason + audit)</div></div>
+            <div class="task-row"><span class="task-id">2.4</span><div class="task-desc">Unrestrict Super Admin (+ audit)</div></div>
+            <div class="task-row"><span class="task-id">2.5</span><div class="task-desc">Remove Super Admin (soft delete + audit)</div></div>
+            <div class="task-row"><span class="task-id">2.6</span><div class="task-desc">View Super Admin history (query + audit the view)</div></div>
+            <div class="task-row"><span class="task-id">2.7</span><div class="task-desc">Seed script (env-driven, idempotent, 2+ accounts)</div></div>
+          </div>
+        </div>
+
+        <div class="phase-card ph3">
+          <div class="phase-header">
+            <span class="phase-num-badge">PHASE 3</span>
+            <span class="phase-title">Super Admin — Full Implementation</span>
+            <span class="phase-subtitle">7 tasks</span>
+          </div>
+          <div class="phase-tasks">
+            <div class="task-row"><span class="task-id">3.1</span><div class="task-desc">Super Admin login (phone + OTP → JWT, restricted-account-can-login behavior)</div></div>
+            <div class="task-row"><span class="task-id">3.2</span><div class="task-desc">Register Admin (profile + revenue/payout validation + bounds check + audit)</div></div>
+            <div class="task-row"><span class="task-id">3.3</span><div class="task-desc">Register Machine Phase 1 (OTP-verify machine SIM + create + link to admin + audit)</div></div>
+            <div class="task-row"><span class="task-id">3.4</span><div class="task-desc">Machine Phase 2 hook (kiosk first-sync timestamp stamp)</div></div>
+            <div class="task-row"><span class="task-id">3.5</span><div class="task-desc">Restrict Admin (mandatory reason + audit)</div></div>
+            <div class="task-row"><span class="task-id">3.6</span><div class="task-desc">Unrestrict Admin (+ audit)</div></div>
+            <div class="task-row"><span class="task-id">3.7</span><div class="task-desc">View Admin / Machine history (query + audit)</div></div>
+          </div>
+        </div>
+
+        <div class="phase-card ph4">
+          <div class="phase-header">
+            <span class="phase-num-badge">PHASE 4</span>
+            <span class="phase-title">Hardening — Post-Launch</span>
+            <span class="phase-subtitle">Against real failures</span>
+          </div>
+          <div class="phase-tasks">
+            <div class="task-row"><span class="task-id">4.1</span><div class="task-desc">Revoke-all-sessions on restrict/remove</div></div>
+            <div class="task-row"><span class="task-id">4.2</span><div class="task-desc">New-device login alerting (Tech Admin)</div></div>
+            <div class="task-row"><span class="task-id">4.3</span><div class="task-desc">Before/after value capture hardening on all field changes</div></div>
+            <div class="task-row"><span class="task-id">4.4</span><div class="task-desc">Payout-change audit hardening + dual-control evaluation</div></div>
+            <div class="task-row"><span class="task-id">4.5</span><div class="task-desc">History archival / TTL + indexing review</div></div>
+            <div class="task-row"><span class="task-id">4.6</span><div class="task-desc">MFA / TOTP evaluation for Tech Admin specifically</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── 07 OPEN DECISIONS ──────────────────────────── -->
+    <section id="decisions" class="reveal">
+      <div class="section-header">
+        <span class="section-num">06</span>
+        <h2 class="section-title">Open Decisions for Senior Sign-Off</h2>
+      </div>
+
+      <div class="decisions-grid">
+        <div class="decision-item">
+          <div class="decision-checkbox">□</div>
+          <div>
+            <div class="decision-text"><strong>Password fallback on Tech Admin</strong> — ship or defer?</div>
+            <div class="decision-rec">Defer. Gate behind env flag, OFF by default. Every auth path you don't ship is an attack surface you don't have to defend.</div>
+          </div>
+        </div>
+        <div class="decision-item">
+          <div class="decision-checkbox">□</div>
+          <div>
+            <div class="decision-text"><strong>OTP rate limit model</strong> — confirm per-phone rolling window + max OTP requests per hour</div>
+            <div class="decision-rec">5 OTP requests/hour per phone. Lockout per-phone, not per-request. Reset counter is the attack vector.</div>
+          </div>
+        </div>
+        <div class="decision-item">
+          <div class="decision-checkbox">□</div>
+          <div>
+            <div class="decision-text"><strong>Reuse user OTP/JWT utilities, but separate session store</strong> — confirm this boundary is enforced</div>
+            <div class="decision-rec">Reuse OTP-generation + JWT-signing utilities. Do NOT reuse user session collection.</div>
+          </div>
+        </div>
+        <div class="decision-item">
+          <div class="decision-checkbox">□</div>
+          <div>
+            <div class="decision-text"><strong>Phone reuse after soft-delete</strong> — allow re-registration of removed account's phone?</div>
+            <div class="decision-rec">Yes — allow reuse. Filter <code style="font-family:var(--mono);font-size:12px;color:var(--teal)">isDeleted=false</code> in unique-phone pre-check. Old record preserved for audit.</div>
+          </div>
+        </div>
+        <div class="decision-item">
+          <div class="decision-checkbox">□</div>
+          <div>
+            <div class="decision-text"><strong>registeredBy as historical snapshot</strong> — confirm no cascade on admin/machine removal</div>
+            <div class="decision-rec">Deliberate choice. registeredBy is audit data, not a live foreign key. Admins/Machines survive the removal of their creator.</div>
+          </div>
+        </div>
+        <div class="decision-item">
+          <div class="decision-checkbox">□</div>
+          <div>
+            <div class="decision-text"><strong>revenueSharePercent bounds + payout-change audit with old values</strong> — confirm validation range</div>
+            <div class="decision-rec">Validate 0 ≤ revenueSharePercent ≤ 100 server-side. Audit captures before + after values on every change.</div>
+          </div>
+        </div>
+        <div class="decision-item">
+          <div class="decision-checkbox">□</div>
+          <div>
+            <div class="decision-text"><strong>Seed: minimum 2 Tech Admins on controlled numbers</strong> + documented DB-recovery procedure</div>
+            <div class="decision-rec">At least 2 seeded accounts. Recovery procedure written in runbook — not tribal knowledge.</div>
+          </div>
+        </div>
+        <div class="decision-item">
+          <div class="decision-checkbox">□</div>
+          <div>
+            <div class="decision-text"><strong>All time-based fields are server-authoritative</strong> — confirm no client timestamps are trusted anywhere</div>
+            <div class="decision-rec">All expiry and timestamp fields computed server-side from a single time source.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── FRAMING ────────────────────────────────────── -->
+    <section class="reveal">
+      <div class="framing">
+        <div class="framing-text">
+          "The v2 spec is solid. This analysis extends it with the security holes and failure modes specific to <em>high-privilege admin auth</em> — where a single compromise has <em>platform-wide blast radius</em>. The launchable subset ships; this document ensures we know every gap up front rather than in a postmortem."
+        </div>
+        <div class="framing-sig">— One-line framing for senior review · Hemant Soni · 13 July 2026</div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  Admin Auth Security Analysis v2.1 · Hemant Soni · Engineering / Senior Review · extends the v2 backend spec
+</footer>
+
+<script>
+  // ── Scroll reveal ───────────────────────────────────
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          entry.target.classList.add('visible');
+        }, 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.06, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(el => observer.observe(el));
+
+  // ── Active nav ──────────────────────────────────────
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.sidebar-nav a');
+  const scrollObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + entry.target.id);
+        });
+      }
+    });
+  }, { threshold: 0.3 });
+  sections.forEach(s => scrollObs.observe(s));
+
+  // ── Stagger threat cards ────────────────────────────
+  document.querySelectorAll('.threat-card').forEach((card, i) => {
+    card.style.transitionDelay = (i * 60) + 'ms';
+  });
+  document.querySelectorAll('.failure-card').forEach((card, i) => {
+    card.style.transitionDelay = (i * 40) + 'ms';
+  });
+</script>
+</body>
+</html>
