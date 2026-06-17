@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Real-Time Kiosk Dispatch · Case Study</title>
+<style>
+  /* ─────────────────────────────────────────────
+     DESIGN TOKENS
+     Direction: "Signal & Dispatch" — an operations-
+     console aesthetic. The system's whole job is
+     pushing live commands to physical machines, so
+     the page reads like a control surface: deep
+     slate field, signal-amber accent for live events,
+     a monospace utility face for the event stream.
+     ───────────────────────────────────────────── */
+  :root {
+    --field:      #0c1018;   /* deep slate base */
+    --field-2:    #111722;   /* raised surface */
+    --field-3:    #161e2b;   /* card */
+    --line:       #232d3d;   /* hairlines */
+    --line-soft:  #1b2331;
+    --ink:        #eef3fb;   /* primary text */
+    --ink-mute:   #8d9bb3;   /* secondary text */
+    --ink-faint:  #5a6880;   /* tertiary / labels */
+    --signal:     #ffb347;   /* signal amber — live events */
+    --signal-dim: #c9893a;
+    --live:       #34d399;   /* connected / success */
+    --halt:       #fb7185;   /* cancel / fail */
+    --wire:       #4f8cff;   /* data / payment */
+
+    --display: "Space Grotesk", -apple-system, sans-serif;
+    --body:    "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--field);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  ::selection { background: var(--signal); color: var(--field); }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 28px; }
+
+  /* ── eyebrow / labels ── */
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--signal);
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--signal);
+    box-shadow: 0 0 0 0 var(--signal);
+    animation: pulse 2.4s infinite;
+  }
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(255,179,71,0.5); }
+    70%  { box-shadow: 0 0 0 8px rgba(255,179,71,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,179,71,0); }
+  }
+
+  /* ─────────────────────────────────────────────
+     HERO — the signature.
+     A live event ticker. The page opens with the
+     actual thing the system does: a command moving
+     from backend to a physical kiosk, in real time.
+     ───────────────────────────────────────────── */
+  .hero {
+    position: relative;
+    padding: 96px 0 64px;
+    border-bottom: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .hero::before {
+    /* faint dispatch grid */
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(var(--line-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 80% 60% at 70% 20%, #000 30%, transparent 75%);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .hero .wrap { position: relative; }
+
+  .hero h1 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(38px, 6vw, 68px);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    margin: 26px 0 22px;
+    max-width: 16ch;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--signal);
+  }
+  .hero .lede {
+    font-size: clamp(17px, 2.2vw, 20px);
+    color: var(--ink-mute);
+    max-width: 56ch;
+    line-height: 1.55;
+  }
+
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 40px;
+    margin-top: 40px;
+    padding-top: 26px;
+    border-top: 1px solid var(--line-soft);
+  }
+  .meta-row .item .k {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .meta-row .item .v {
+    font-size: 15px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  /* ── live dispatch console (the signature element) ── */
+  .console {
+    margin-top: 48px;
+    background: var(--field-2);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px -20px rgba(0,0,0,0.6);
+  }
+  .console-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 18px;
+    background: var(--field-3);
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-faint);
+  }
+  .console-bar .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .console-bar .dot.r { background: var(--halt); }
+  .console-bar .dot.y { background: var(--signal); }
+  .console-bar .dot.g { background: var(--live); }
+  .console-bar .title { margin-left: 8px; }
+  .console-bar .conn {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 7px;
+    color: var(--live);
+  }
+  .console-bar .conn::before {
+    content: ""; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--live);
+    animation: pulse-g 2s infinite;
+  }
+  @keyframes pulse-g {
+    0% { box-shadow: 0 0 0 0 rgba(52,211,153,0.5); }
+    70% { box-shadow: 0 0 0 7px rgba(52,211,153,0); }
+    100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+  }
+
+  .stream {
+    padding: 18px;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    line-height: 1.9;
+    min-height: 280px;
+  }
+  .stream .ln {
+    display: flex;
+    gap: 14px;
+    opacity: 0;
+    transform: translateY(6px);
+    animation: feed 0.5s forwards;
+    white-space: nowrap;
+  }
+  .stream .ln .t { color: var(--ink-faint); flex-shrink: 0; }
+  .stream .ln .arrow { flex-shrink: 0; }
+  .stream .ln .arrow.up { color: var(--wire); }
+  .stream .ln .arrow.down { color: var(--signal); }
+  .stream .ln .msg { color: var(--ink-mute); white-space: normal; }
+  .stream .ln .msg b { color: var(--ink); font-weight: 600; }
+  .stream .ln.ok .msg b { color: var(--live); }
+  .stream .ln.warn .msg b { color: var(--signal); }
+  @keyframes feed { to { opacity: 1; transform: translateY(0); } }
+
+  /* ─────────────────────────────────────────────
+     SECTION SCAFFOLD
+     ───────────────────────────────────────────── */
+  section { padding: 84px 0; border-bottom: 1px solid var(--line-soft); }
+  .sec-head { max-width: 62ch; margin-bottom: 52px; }
+  .sec-head h2 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(27px, 4vw, 38px);
+    letter-spacing: -0.015em;
+    line-height: 1.1;
+    margin: 16px 0 16px;
+  }
+  .sec-head p {
+    color: var(--ink-mute);
+    font-size: 17px;
+    line-height: 1.6;
+  }
+
+  /* ── problem: before/after split ── */
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .panel {
+    background: var(--field-2);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 30px;
+  }
+  .panel.bad { border-color: rgba(251,113,133,0.22); }
+  .panel.good { border-color: rgba(52,211,153,0.22); }
+  .panel .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .panel.bad .tag { color: var(--halt); }
+  .panel.good .tag { color: var(--live); }
+  .panel h3 {
+    font-family: var(--display);
+    font-size: 19px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+  .panel ul { list-style: none; }
+  .panel li {
+    color: var(--ink-mute);
+    font-size: 14.5px;
+    padding: 9px 0 9px 24px;
+    position: relative;
+    border-top: 1px solid var(--line-soft);
+  }
+  .panel li:first-child { border-top: none; }
+  .panel.bad li::before {
+    content: "×"; position: absolute; left: 2px; top: 8px;
+    color: var(--halt); font-weight: 700;
+  }
+  .panel.good li::before {
+    content: "→"; position: absolute; left: 0; top: 9px;
+    color: var(--live); font-family: var(--mono); font-size: 13px;
+  }
+
+  /* ── approach: the considered-mechanisms table ── */
+  .matrix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
+  }
+  .matrix th, .matrix td {
+    text-align: left;
+    padding: 15px 16px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .matrix thead th {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 500;
+  }
+  .matrix td:first-child { color: var(--ink); font-weight: 500; }
+  .matrix td { color: var(--ink-mute); }
+  .matrix tr.chosen td {
+    background: rgba(255,179,71,0.05);
+  }
+  .matrix tr.chosen td:first-child { color: var(--signal); }
+  .pill {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 100px;
+    border: 1px solid var(--line);
+    color: var(--ink-faint);
+  }
+  .pill.win { color: var(--signal); border-color: var(--signal-dim); }
+
+  /* ── flow: the pipeline ── */
+  .pipe { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 22px;
+    padding: 22px 0;
+    border-top: 1px solid var(--line-soft);
+    align-items: start;
+  }
+  .step:first-child { border-top: none; }
+  .step .num {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--signal);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--field-2);
+  }
+  .step .body h4 {
+    font-family: var(--display);
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+  .step .body p { color: var(--ink-mute); font-size: 14.5px; }
+  .step .body .ch {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-top: 6px;
+  }
+  .step .body .ch span { color: var(--wire); }
+
+  /* ── safety net callout ── */
+  .net {
+    background: linear-gradient(160deg, var(--field-3), var(--field-2));
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 40px;
+    margin-top: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  .net::after {
+    content: "";
+    position: absolute; right: -40px; top: -40px;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(255,179,71,0.10), transparent 70%);
+  }
+  .net .tag { color: var(--signal); }
+  .net h3 {
+    font-family: var(--display);
+    font-size: 23px;
+    font-weight: 600;
+    margin: 14px 0 14px;
+    max-width: 28ch;
+    line-height: 1.2;
+  }
+  .net p { color: var(--ink-mute); max-width: 60ch; font-size: 15.5px; }
+  .net .guards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 32px;
+  }
+  .net .guard {
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    padding: 18px;
+    background: rgba(12,16,24,0.5);
+  }
+  .net .guard .gk {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--signal);
+    margin-bottom: 8px;
+  }
+  .net .guard p { font-size: 13.5px; color: var(--ink-mute); }
+
+  /* ── impact metrics ── */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .metric {
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    padding: 28px 22px;
+    background: var(--field-2);
+  }
+  .metric .big {
+    font-family: var(--display);
+    font-size: clamp(30px, 4vw, 42px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--signal);
+    line-height: 1;
+  }
+  .metric .lbl {
+    margin-top: 12px;
+    font-size: 13.5px;
+    color: var(--ink-mute);
+    line-height: 1.4;
+  }
+
+  /* ── stack / engineering depth ── */
+  .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+  .depth-list { list-style: none; }
+  .depth-list li {
+    padding: 16px 0;
+    border-top: 1px solid var(--line-soft);
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 14px;
+  }
+  .depth-list li:first-child { border-top: none; }
+  .depth-list .mk { color: var(--signal); font-family: var(--mono); font-size: 13px; }
+  .depth-list .dt strong { display: block; font-weight: 600; margin-bottom: 3px; font-size: 15px; }
+  .depth-list .dt span { color: var(--ink-mute); font-size: 14px; }
+
+  .stack-card {
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: var(--field-2);
+    padding: 28px;
+    height: fit-content;
+  }
+  .stack-card h4 {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 18px;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 9px; }
+  .chip {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    padding: 7px 13px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    background: var(--field-3);
+  }
+
+  /* ── deferred / honesty section ── */
+  .deferred {
+    border: 1px dashed var(--line);
+    border-radius: 13px;
+    padding: 30px;
+    background: rgba(17,23,34,0.4);
+  }
+  .deferred .tag { color: var(--ink-faint); font-family: var(--mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase; }
+  .deferred h3 { font-family: var(--display); font-size: 20px; margin: 12px 0 8px; }
+  .deferred > p { color: var(--ink-mute); font-size: 15px; max-width: 64ch; }
+  .deferred .grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px 28px;
+    margin-top: 22px;
+  }
+  .deferred .grid div {
+    font-size: 14px; color: var(--ink-mute);
+    padding: 8px 0 8px 22px; position: relative;
+    border-top: 1px solid var(--line-soft);
+  }
+  .deferred .grid div::before {
+    content: "○"; position: absolute; left: 0; top: 8px;
+    color: var(--ink-faint); font-size: 11px;
+  }
+
+  /* ── footer ── */
+  footer { padding: 70px 0 90px; }
+  footer .card {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 48px;
+    background: linear-gradient(160deg, var(--field-3), var(--field));
+    text-align: center;
+  }
+  footer h2 {
+    font-family: var(--display);
+    font-size: clamp(24px, 3.5vw, 34px);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    margin-bottom: 14px;
+  }
+  footer p { color: var(--ink-mute); max-width: 50ch; margin: 0 auto 28px; }
+  footer .sig {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-faint);
+    margin-top: 30px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line-soft);
+  }
+  footer .sig b { color: var(--signal); }
+
+  /* ── reveal on scroll ── */
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  /* ── responsive ── */
+  @media (max-width: 860px) {
+    .split, .twocol { grid-template-columns: 1fr; }
+    .net .guards { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .deferred .grid { grid-template-columns: 1fr; }
+    .matrix-scroll { overflow-x: auto; }
+    .matrix { min-width: 560px; }
+    .stream { font-size: 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+    .reveal { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ───────────────────── HERO ───────────────────── -->
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">Case Study · Real-Time Systems</span>
+    <h1>Commands that reach a machine the <em>instant</em> a customer is standing in front of it.</h1>
+    <p class="lede">
+      DocuPoint's print kiosks needed to act the moment a document owner
+      approved a job — not seconds later, not after a refresh. We built a
+      real-time dispatch layer that pushes commands to physical machines
+      over a live connection, and guarantees no paid job is ever lost to
+      a dropped network.
+    </p>
+
+    <div class="meta-row">
+      <div class="item"><span class="k">Role</span><span class="v">Backend Engineering</span></div>
+      <div class="item"><span class="k">Domain</span><span class="v">Print Kiosk · IoT</span></div>
+      <div class="item"><span class="k">Core</span><span class="v">Socket.IO · Redis · NestJS</span></div>
+      <div class="item"><span class="k">Outcome</span><span class="v">Sub-second dispatch, zero lost jobs</span></div>
+    </div>
+
+    <!-- SIGNATURE: live dispatch console -->
+    <div class="console" aria-hidden="true">
+      <div class="console-bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="title">dispatch.live — kiosk:MCH_042</span>
+        <span class="conn">connected</span>
+      </div>
+      <div class="stream" id="stream"></div>
+    </div>
+  </div>
+</header>
+
+<!-- ───────────────────── PROBLEM ───────────────────── -->
+<section>
+  <div class="wrap reveal">
+    <div class="sec-head">
+      <span class="eyebrow">The Problem</span>
+      <h2>A customer is waiting at the machine. The system can't make them wait too.</h2>
+      <p>
+        A print job only proceeds after the document owner approves it on
+        WhatsApp. The moment they tap “Allow,” the kiosk needs to show the
+        payment screen, then print — while a real person stands at the counter.
+        The naive approaches all failed this bar in their own way.
+      </p>
+    </div>
+
+    <div class="split">
+      <div class="panel bad">
+        <span class="tag">Rejected approaches</span>
+        <h3>Why polling and push notifications didn't work</h3>
+        <ul>
+          <li>Polling the backend every few seconds added visible lag and wasted requests at scale</li>
+          <li>Push notifications (FCM) had unpredictable delivery timing — unacceptable for a waiting customer</li>
+          <li>One-directional channels still needed a second path for the machine to report results</li>
+          <li>None guaranteed that a paid job survived a dropped connection</li>
+        </ul>
+      </div>
+      <div class="panel good">
+        <span class="tag">What the system needed</span>
+        <h3>The real requirements behind the feature</h3>
+        <ul>
+          <li>Sub-second command delivery while the customer is present</li>
+          <li>Two-way: commands down to the kiosk, results back up to the backend</li>
+          <li>A guarantee that a paid-but-undelivered job is never silently lost</li>
+          <li>Maintainable by a single engineer, on infrastructure already in place</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────── APPROACH ───────────────────── -->
+<section>
+  <div class="wrap reveal">
+    <div class="sec-head">
+      <span class="eyebrow">The Decision</span>
+      <h2>Six mechanisms evaluated. One chosen for a reason, not a reflex.</h2>
+      <p>
+        Rather than reaching for the familiar, every viable transport was
+        weighed against the actual constraints: a waiting customer, a
+        two-way conversation, and a solo maintainer.
+      </p>
+    </div>
+
+    <div class="matrix-scroll">
+      <table class="matrix">
+        <thead>
+          <tr><th>Mechanism</th><th>Latency</th><th>Two-way</th><th>Fit</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>HTTP Short Polling</td><td>Poor</td><td>Via REST</td><td><span class="pill">Wasteful</span></td></tr>
+          <tr><td>HTTP Long Polling</td><td>Good</td><td>Via REST</td><td><span class="pill">Half-measure</span></td></tr>
+          <tr class="chosen"><td>Socket.IO (WebSocket)</td><td>Excellent</td><td>Native</td><td><span class="pill win">Chosen</span></td></tr>
+          <tr><td>Server-Sent Events</td><td>Excellent</td><td>One-way</td><td><span class="pill">Needs a 2nd path</span></td></tr>
+          <tr><td>FCM / APNs Push</td><td>Variable</td><td>One-way</td><td><span class="pill">Unreliable timing</span></td></tr>
+          <tr><td>MQTT</td><td>Excellent</td><td>Native</td><td><span class="pill">Ops-heavy for now</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="margin-top:26px;color:var(--ink-mute);font-size:15px;max-width:64ch;">
+      <strong style="color:var(--ink)">Socket.IO won</strong> on the two things
+      that mattered most: real-time, bidirectional delivery for a waiting
+      customer, and a manageable operational footprint on infrastructure
+      already running. MQTT is the better answer at large fleet scale — and
+      the design leaves room to migrate to it without rewriting the flow.
+    </p>
+  </div>
+</section>
+
+<!-- ───────────────────── FLOW ───────────────────── -->
+<section>
+  <div class="wrap reveal">
+    <div class="sec-head">
+      <span class="eyebrow">The Flow</span>
+      <h2>One continuous loop, from OTP entry to printed page.</h2>
+      <p>Each step hands cleanly to the next — and every command is persisted before it's sent.</p>
+    </div>
+
+    <div class="pipe">
+      <div class="step"><div class="num">01</div><div class="body">
+        <h4>Kiosk connects &amp; identifies</h4>
+        <p>On boot, the machine opens a live connection and joins its own private channel. Any commands queued while it was offline replay instantly.</p>
+        <div class="ch">channel · <span>kiosk:&#123;machineId&#125;</span></div>
+      </div></div>
+      <div class="step"><div class="num">02</div><div class="body">
+        <h4>Customer enters their code</h4>
+        <p>The kiosk submits the OTP; the backend verifies it and sends a WhatsApp approval request to the document's owner.</p>
+      </div></div>
+      <div class="step"><div class="num">03</div><div class="body">
+        <h4>Owner approves on WhatsApp</h4>
+        <p>The moment they tap “Allow,” the backend pushes payment options to the kiosk in real time — QR, UPI, or checkout.</p>
+        <div class="ch">event · <span>payment_options</span></div>
+      </div></div>
+      <div class="step"><div class="num">04</div><div class="body">
+        <h4>Payment confirmed → print dispatched</h4>
+        <p>On payment, the backend persists the print command, then pushes it to the machine with every file and setting it needs.</p>
+        <div class="ch">event · <span>print_command</span></div>
+      </div></div>
+      <div class="step"><div class="num">05</div><div class="body">
+        <h4>Machine prints &amp; reports back</h4>
+        <p>The kiosk prints, then reports the outcome. The result is recorded, the owner is notified on WhatsApp, and the loop closes.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────── SAFETY NET ───────────────────── -->
+<section>
+  <div class="wrap reveal">
+    <div class="net">
+      <span class="tag eyebrow" style="color:var(--signal)">The hard part</span>
+      <h3>A real connection drops. A paid job must never drop with it.</h3>
+      <p>
+        Shop Wi-Fi is unreliable. The difference between a toy and a
+        production system is what happens when the socket dies at the exact
+        moment a command is sent. The dispatch layer was built so that a
+        dropped connection is a recoverable blip — never a lost, paid job.
+      </p>
+      <div class="guards">
+        <div class="guard">
+          <div class="gk">Persist first</div>
+          <p>Every command is written to a durable queue <em>before</em> it's emitted — so it survives a drop.</p>
+        </div>
+        <div class="guard">
+          <div class="gk">Replay on reconnect</div>
+          <p>When a machine comes back online, any undelivered commands are automatically re-sent.</p>
+        </div>
+        <div class="guard">
+          <div class="gk">Money lives in the database</div>
+          <p>Payment truth is held in persistent storage, not the live cache — a cache failure can never lose a paid job.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────── IMPACT ───────────────────── -->
+<section>
+  <div class="wrap reveal">
+    <div class="sec-head">
+      <span class="eyebrow">The Impact</span>
+      <h2>Measured against the constraints that mattered.</h2>
+    </div>
+    <div class="metrics">
+      <div class="metric"><div class="big">&lt;1s</div><div class="lbl">command delivery while the customer waits</div></div>
+      <div class="metric"><div class="big">0</div><div class="lbl">paid jobs lost to a dropped connection</div></div>
+      <div class="metric"><div class="big">2-way</div><div class="lbl">single live channel, commands down &amp; results up</div></div>
+      <div class="metric"><div class="big">1</div><div class="lbl">engineer, shipped on existing infrastructure</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────── ENGINEERING DEPTH ───────────────────── -->
+<section>
+  <div class="wrap reveal">
+    <div class="sec-head">
+      <span class="eyebrow">Under the Hood</span>
+      <h2>The decisions that separate a demo from a deployable system.</h2>
+    </div>
+    <div class="twocol">
+      <ul class="depth-list">
+        <li><span class="mk">›</span><div class="dt"><strong>Per-machine channels</strong><span>Each kiosk joins an isolated room, so a command can target exactly one machine with no cross-talk.</span></div></li>
+        <li><span class="mk">›</span><div class="dt"><strong>Persist-before-emit</strong><span>Commands are queued durably before sending, making delivery resilient to connection loss.</span></div></li>
+        <li><span class="mk">›</span><div class="dt"><strong>Reconnect replay</strong><span>The reconnect handshake re-delivers anything missed while the machine was dark.</span></div></li>
+        <li><span class="mk">›</span><div class="dt"><strong>Result-closes-command</strong><span>A command stays recoverable until the machine confirms the actual print result — not just receipt.</span></div></li>
+        <li><span class="mk">›</span><div class="dt"><strong>Append-only print history</strong><span>Every outcome is its own immutable record, enabling re-prints and per-machine reporting.</span></div></li>
+      </ul>
+      <div class="stack-card">
+        <h4>Stack</h4>
+        <div class="chips">
+          <span class="chip">NestJS</span>
+          <span class="chip">Socket.IO</span>
+          <span class="chip">Redis</span>
+          <span class="chip">Firestore</span>
+          <span class="chip">WhatsApp Cloud API</span>
+          <span class="chip">Razorpay</span>
+          <span class="chip">TypeScript</span>
+        </div>
+        <h4 style="margin-top:28px;">Patterns</h4>
+        <div class="chips">
+          <span class="chip">Event-driven</span>
+          <span class="chip">Pub/Sub rooms</span>
+          <span class="chip">Durable queue</span>
+          <span class="chip">Idempotent results</span>
+          <span class="chip">State machine</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────── DEFERRED / HONESTY ───────────────────── -->
+<section>
+  <div class="wrap reveal">
+    <div class="deferred">
+      <span class="tag">Deliberately Deferred</span>
+      <h3>Shipping a launchable core, with the full map already drawn.</h3>
+      <p>
+        A launch-first build means knowing exactly what you're <em>not</em>
+        doing yet. These were analysed, documented, and consciously scheduled
+        for hardening against real usage — not discovered in a postmortem.
+      </p>
+      <div class="grid">
+        <div>Device authentication on the live channel</div>
+        <div>Acknowledgement &amp; double-print guards</div>
+        <div>Heartbeat-based offline detection</div>
+        <div>Automated stuck-job recovery</div>
+        <div>Multi-instance horizontal scaling</div>
+        <div>Per-machine liveness alerting</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────── FOOTER ───────────────────── -->
+<footer>
+  <div class="wrap reveal">
+    <div class="card">
+      <span class="eyebrow" style="justify-content:center;">Let's build</span>
+      <h2 style="margin-top:18px;">Real-time systems that hold up when the network doesn't.</h2>
+      <p>
+        From live device fleets to event-driven backends, I design for the
+        moment things go wrong — because that's where production lives.
+      </p>
+      <div class="sig">
+        Engineered end-to-end by <b>[Your Name]</b> · Backend &amp; Real-Time Systems
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  /* ── live dispatch console feed ── */
+  const lines = [
+    { t: "10:42:01", d: "up",   cls: "",     m: "<b>kiosk:connect</b> · machine MCH_042 online" },
+    { t: "10:42:01", d: "down", cls: "ok",   m: "<b>connected</b> · joined channel · 0 pending" },
+    { t: "10:42:18", d: "up",   cls: "",     m: "POST /otp/verify · code accepted" },
+    { t: "10:42:18", d: "down", cls: "",     m: "WhatsApp approval sent to owner" },
+    { t: "10:42:33", d: "up",   cls: "",     m: "owner replied <b>YES</b> on WhatsApp" },
+    { t: "10:42:33", d: "down", cls: "warn", m: "<b>payment_options</b> · ₹24.00 · QR / UPI / Checkout" },
+    { t: "10:42:51", d: "up",   cls: "",     m: "razorpay webhook · payment captured" },
+    { t: "10:42:51", d: "down", cls: "warn", m: "<b>print_command</b> · 2 files · 12 pages · persisted" },
+    { t: "10:42:54", d: "up",   cls: "ok",   m: "machine result · <b>SUCCESS</b>" },
+    { t: "10:42:54", d: "down", cls: "",     m: "owner notified · session closed" },
+  ];
+
+  const stream = document.getElementById("stream");
+  let i = 0;
+  function emit() {
+    if (i >= lines.length) {
+      setTimeout(() => { stream.innerHTML = ""; i = 0; emit(); }, 3200);
+      return;
+    }
+    const l = lines[i];
+    const row = document.createElement("div");
+    row.className = "ln " + l.cls;
+    row.style.animationDelay = "0s";
+    row.innerHTML =
+      `<span class="t">${l.t}</span>` +
+      `<span class="arrow ${l.d}">${l.d === "up" ? "▲" : "▼"}</span>` +
+      `<span class="msg">${l.m}</span>`;
+    stream.appendChild(row);
+    i++;
+    setTimeout(emit, 750);
+  }
+  // honor reduced motion: show all at once
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    stream.innerHTML = lines.map(l =>
+      `<div class="ln ${l.cls}" style="opacity:1;transform:none">
+        <span class="t">${l.t}</span>
+        <span class="arrow ${l.d}">${l.d === "up" ? "▲" : "▼"}</span>
+        <span class="msg">${l.m}</span>
+      </div>`).join("");
+  } else {
+    emit();
+  }
+
+  /* ── scroll reveal ── */
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("in"); });
+  }, { threshold: 0.12 });
+  document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
